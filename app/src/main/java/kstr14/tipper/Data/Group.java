@@ -22,6 +22,30 @@ public class Group extends ParseObject {
         return getString("name");
     }
 
+    public void setDescription(String description) {
+        put("description", description);
+    }
+
+    public String getDescription() {
+        return getString("description");
+    }
+
+    public void setClosed(boolean closed) {
+        put("closed", closed);
+    }
+
+    public boolean isClosed() {
+        return getBoolean("closed");
+    }
+
+    public void setCreator(ParseUser creator) {
+        put("creator", creator);
+    }
+
+    public ParseUser getCreator() {
+        return getParseUser("creator");
+    }
+
     public ParseRelation<ParseUser> getUsers() {
         return getRelation("users");
     }

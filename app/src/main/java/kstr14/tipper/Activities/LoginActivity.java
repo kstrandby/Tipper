@@ -1,19 +1,26 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.facebook.FacebookSdk;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 import kstr14.tipper.Data.Category;
 import kstr14.tipper.Data.Group;
@@ -23,16 +30,26 @@ import kstr14.tipper.R;
 
 public class LoginActivity extends ActionBarActivity {
 
-    private EditText userNameEditText;
-    private EditText emailEditText;
-    private EditText passwordEditText;
-    private EditText userNameLoginEditText;
-    private EditText passwordLoginEditText;
+    // UI elements for default login fragment
+    private EditText usernameDefaultLogin;
+    private EditText passwordDefaultLogin;
+
+    // UI elements for sign up fragment
+    private EditText usernameSignup;
+    private EditText emailSignup;
+    private EditText passwordSignup;
+    private EditText reenterPasswordSignup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        getSupportActionBar().hide();
+
+        // initalize facebook
+        FacebookSdk.sdkInitialize(getApplicationContext());
 
         // Initialize Parse
         ParseObject.registerSubclass(Tip.class);
@@ -47,62 +64,132 @@ public class LoginActivity extends ActionBarActivity {
             startActivity(intent);
         }
 
-        userNameEditText = (EditText) findViewById(R.id.userNameInput);
-        emailEditText = (EditText) findViewById(R.id.emailInput);
-        passwordEditText = (EditText) findViewById(R.id.passwordInput);
-        userNameLoginEditText = (EditText) findViewById(R.id.userNameInputLogin);
-        passwordLoginEditText = (EditText) findViewById(R.id.passwordInputLogin);
+        // otherwise set fragment to the default login screen
+        DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.fragment_container, defaultLoginFragment).commit();
     }
 
-    public void signUp(View view) {
-        ParseUser user = new ParseUser();
-        user.setUsername(userNameEditText.getText().toString());
-        user.setPassword(passwordEditText.getText().toString());
-        user.setEmail(emailEditText.getText().toString());
+    /**
+     * Method called when sign up button pressed on the default login fragment
+     * Switches the default login fragment with a sign up fragment
+     * @param view
+     */
+    public void defaultSignUpPressed(View view) {
+        SignUpFragment signUpFragment = new SignUpFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-
-        user.signUpInBackground(new SignUpCallback() {
-            public void done(ParseException e) {
-                if (e == null) {
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Sign up failed. Please try again.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        // Replace the default login fragment with the sign up fragment,
+        // and add the transaction to the back stack so the user can navigate back
+        fragmentTransaction.replace(R.id.fragment_container, signUpFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
-    public void login(View view) {
-        ParseUser.logInInBackground(userNameLoginEditText.getText().toString(),
-                passwordLoginEditText.getText().toString(), new LogInCallback() {
+    /**
+     * Method called when login button pressed on the default login fragment
+     * Attempts to log in the user, if successful goes to MainActivity
+     * @param view
+     */
+    public void defaultLoginPressed(View view) {
+        // initialize UI elements for default login fragment
+        usernameDefaultLogin = (EditText) findViewById(R.id.usernameDefaultLoginFragment);
+        passwordDefaultLogin = (EditText) findViewById(R.id.passwordDefaultLoginFragment);
+
+        // fetch input and attempt login
+        String username = usernameDefaultLogin.getText().toString();
+        String password = passwordDefaultLogin.getText().toString();
+        ParseUser.logInInBackground(username, password, new LogInCallback() {
             public void done(ParseUser user, ParseException e) {
-                if (user != null) {
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(getApplicationContext(), "Login failed.", Toast.LENGTH_SHORT).show();
-                }
+                 if (user != null) {
+                      Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                      startActivity(intent);
+                 } else {
+                      Toast.makeText(getApplicationContext(), "Login failed.", Toast.LENGTH_SHORT).show();
+                 }
             }
         });
     }
 
+    /**
+     * Method called when sign up button pressed in sign up fragment
+     * Attempts to register the user, if successful goes to MainActivity
+     * @param view
+     */
+    public void signupPressed(View view) {
+        // UI elements for sign up fragment
+        usernameSignup = (EditText) findViewById(R.id.usernameSignupFragment);
+        emailSignup = (EditText) findViewById(R.id.emailSignupFragment);
+        passwordSignup = (EditText) findViewById(R.id.passwordSignupFragment);
+        reenterPasswordSignup = (EditText) findViewById(R.id.reenterPasswordSignupFragment);
+
+        String username = usernameSignup.getText().toString();
+        String email = emailSignup.getText().toString();
+        String password1 = passwordSignup.getText().toString();
+        String password2 = reenterPasswordSignup.getText().toString();
+
+        // validate passwords and email
+        if(!validatePassword(password1, password2)) {
+            Toast.makeText(getApplicationContext(), "Passwords do not match, try again.", Toast.LENGTH_SHORT).show();
+        } else if (!validateEmail(email)) {
+            Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
+        } else {
+            ParseUser user = new ParseUser();
+            user.setUsername(username);
+            user.setPassword(password1);
+            user.setEmail(email);
+            user.signUpInBackground(new SignUpCallback() {
+                public void done(ParseException e) {
+                    if (e == null) {
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Sign up failed. Please try again.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Validates that two passwords are equal
+     * @param password1
+     * @param password2
+     * @return
+     */
+    public boolean validatePassword(String password1, String password2) {
+        if(password1.equals(password2)) return true;
+        else return false;
+        }
+
+    /**
+     * Validates the structure of an email address
+     * @param email
+     * @return
+     */
+    public boolean validateEmail(String email) {
+        boolean result = true;
+        try {
+            InternetAddress internetAddress = new InternetAddress(email);
+            internetAddress.validate();
+        } catch (AddressException e) {
+            e.printStackTrace();
+            result = false;
+        }
+        return result;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_login, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }

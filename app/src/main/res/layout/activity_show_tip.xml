@@ -40,7 +40,7 @@
                 android:layout_marginRight="5dp" />
 
             <TextView
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="\t0\t"
@@ -60,7 +60,7 @@
                 android:layout_marginRight="5dp" />
 
             <TextView
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="\t0\t"
@@ -104,7 +104,7 @@
                 android:src="@android:drawable/ic_menu_month" />
 
             <TextView
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Monday, 11-05-2015 12:00"
@@ -127,7 +127,7 @@
                 android:src="@android:drawable/ic_menu_directions" />
 
             <TextView
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Caulfield, Melbourne"

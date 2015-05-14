@@ -3,8 +3,8 @@ package kstr14.tipper.Activities;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -86,5 +86,19 @@ public class MyGroupsActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if(requestCode == CREATE_GROUP_REQUEST) {
+            if(resultCode == RESULT_OK) {
+                updateGroupList();
+            }
+        }
+    }
+
+    private void updateGroupList() {
+        adapter.loadObjects();
+        listView.setAdapter(adapter);
     }
 }

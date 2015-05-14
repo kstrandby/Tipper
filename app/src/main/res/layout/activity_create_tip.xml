@@ -8,7 +8,7 @@
     android:id="@+id/relativeLayout">
 
     <EditText
-        style="@style/text"
+        style="@style/text_accent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/titleInput"
@@ -22,7 +22,7 @@
         android:layout_column="0" />
 
     <EditText
-        style="@style/text"
+        style="@style/text_accent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine"
@@ -57,7 +57,7 @@
             android:layout_gravity="center_horizontal">
 
             <CheckBox
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="FOOD"
@@ -66,7 +66,7 @@
                 android:checked="true" />
 
             <CheckBox
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DRINKS"
@@ -75,7 +75,7 @@
                 android:checked="false"/>
 
             <CheckBox
-                style="@style/text"
+                style="@style/text_accent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="OTHER"
@@ -109,7 +109,7 @@
         android:layout_alignParentStart="true" />
 
     <TextView
-        style="@style/text"
+        style="@style/text_accent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Price: 0 AUD"
@@ -121,7 +121,7 @@
         android:textSize="18dp" />
 
     <TextView
-        style="@style/text"
+        style="@style/text_accent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
@@ -134,7 +134,7 @@
         android:clickable="true"/>
 
     <TextView
-        style="@style/text"
+        style="@style/text_accent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
@@ -159,7 +159,7 @@
         android:theme="@android:style/Widget.DeviceDefault.Light.ListView">
 
         <TextView
-            style="@style/text"
+            style="@style/text_accent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Repeat"
@@ -172,7 +172,7 @@
             android:focusable="false"/>
 
         <TextView
-            style="@style/text"
+            style="@style/text_accent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="One time event"
