@@ -1,0 +1,74 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="kstr14.tipper.Activities.CreateGroupActivity">
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/groupNameInput"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:hint="Group name"
+        android:textColorHint="@color/accent"
+        android:textColor="@color/primary"
+        android:layout_marginTop="20dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/groupDescriptionInput"
+        android:layout_below="@+id/groupNameInput"
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/groupNameInput"
+        android:hint="Group description"
+        android:textColorHint="@color/accent"
+        android:textColor="@color/primary" />
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/groupDescriptionInput"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:id="@+id/radioGroup">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Closed group"
+            android:id="@+id/closedGroupRadioButton"
+            android:layout_gravity="left|center_horizontal"
+            android:checked="false"
+            android:textColor="@color/primary" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open group"
+            android:id="@+id/openGroupRadioButton"
+            android:layout_gravity="left|center_horizontal"
+            android:checked="true"
+            android:textColor="@color/primary" />
+    </RadioGroup>
+
+    <Button
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="CREATE"
+        android:id="@+id/button"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:layout_row="14"
+        android:layout_column="1"
+        android:onClick="createGroup"
+        android:background="#6c71a5"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="136dp" />
+
+</RelativeLayout>

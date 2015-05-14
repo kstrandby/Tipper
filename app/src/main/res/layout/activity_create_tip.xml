@@ -1,0 +1,183 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="kstr14.tipper.Activities.CreateTipActivity"
+    android:id="@+id/relativeLayout">
+
+    <EditText
+        style="@style/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/titleInput"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:hint="Title"
+        android:layout_row="0"
+        android:layout_column="0" />
+
+    <EditText
+        style="@style/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/descriptionInput"
+        android:layout_below="@+id/titleInput"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:hint="Description (optional)"
+        android:layout_alignRight="@+id/tableLayout"
+        android:layout_alignEnd="@+id/tableLayout" />
+
+    <TableLayout
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:id="@+id/tableLayout"
+        android:layout_alignRight="@+id/titleInput"
+        android:layout_alignEnd="@+id/titleInput"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/descriptionInput"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp">
+
+        <TableRow
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_gravity="center_horizontal">
+
+            <CheckBox
+                style="@style/text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="FOOD"
+                android:id="@+id/foodCategoryCheckBox"
+                android:layout_column="0"
+                android:checked="true" />
+
+            <CheckBox
+                style="@style/text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DRINKS"
+                android:id="@+id/drinksCategoryCheckBox"
+                android:layout_column="1"
+                android:checked="false"/>
+
+            <CheckBox
+                style="@style/text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OTHER"
+                android:id="@+id/otherCategoryCheckBox"
+                android:layout_column="2"
+                android:checked="false"/>
+        </TableRow>
+    </TableLayout>
+
+    <Button
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="CREATE"
+        android:id="@+id/createButton"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:layout_row="14"
+        android:layout_column="1"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="45dp"
+        android:onClick="createTip"
+        android:background="#6c71a5" />
+
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/seekBar"
+        android:layout_below="@+id/tableLayout"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        style="@style/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Price: 0 AUD"
+        android:id="@+id/priceView"
+        android:layout_alignParentStart="true"
+        android:textStyle="bold"
+        android:layout_below="@+id/seekBar"
+        android:layout_alignParentLeft="true"
+        android:textSize="18dp" />
+
+    <TextView
+        style="@style/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Start: \t\t\t 05-05-2015 \t\t 12:00"
+        android:id="@+id/startDateView"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/priceView"
+        android:layout_alignLeft="@+id/createButton"
+        android:layout_alignStart="@+id/createButton"
+        android:clickable="true"/>
+
+    <TextView
+        style="@style/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="End: \t\t\t\t 05-05-2015 \t\t 14:00"
+        android:id="@+id/endDateView"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/startDateView"
+        android:layout_alignLeft="@+id/startDateView"
+        android:layout_alignStart="@+id/startDateView"
+        android:clickable="true"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="25dp"
+        android:layout_below="@+id/endDateView"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:clickable="true"
+        android:id="@+id/repeatLinearLayout"
+        android:theme="@android:style/Widget.DeviceDefault.Light.ListView">
+
+        <TextView
+            style="@style/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Repeat"
+            android:id="@+id/textView2"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            android:layout_below="@+id/endDateView"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:focusable="false"/>
+
+        <TextView
+            style="@style/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="One time event"
+            android:id="@+id/repeatStyleView"
+            android:focusable="false"/>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+
+    <!-- Search, should appear as action button -->
+    <item android:id="@+id/action_search"
+        android:title="Search"
+        android:icon="@drawable/ic_action_search"
+        app:showAsAction="ifRoom" />
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/menu_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        android:title="@string/action_settings"/>
+    <!-- Options in menu -->
+    <item android:id="@+id/groups"
+        android:title="My Groups"/>
+    <item android:id="@+id/profile"
+        android:title="My Profile"/>
+    <item android:id="@+id/logout"
+        android:title="Log out"/>
+
+    <item android:id="@+id/action_add"
+        android:title="Add"
+        android:icon="@drawable/ic_action_new"
+        app:showAsAction="always"/>
+</menu>

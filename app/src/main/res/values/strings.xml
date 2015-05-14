@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Tipper</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_create_tip">Create Tip</string>
+    <string name="title_activity_search_tip">Search Tips</string>
+    <string name="title_activity_show_tip">Show Tip</string>
+    <string name="title_activity_my_groups">My Groups</string>
+    <string name="title_search">Search</string>
+    <string name="facebook_app_id">1444872489140228</string>
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_my_profile">My Profile</string>
+    <string name="title_activity_search_result">Search Result</string>
+    <string name="title_activity_show_group">Show Group</string>
+    <string name="title_activity_create_group">Create Group</string>
+    <string name="search_hint">Search by group name or location</string>
+</resources>
