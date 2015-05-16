@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,9 +16,13 @@ import android.widget.Toast;
 import com.facebook.FacebookSdk;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
+import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -68,6 +73,13 @@ public class LoginActivity extends ActionBarActivity {
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_container, defaultLoginFragment).commit();
+    }
+
+    // Required for making Facebook login work
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
@@ -150,6 +162,27 @@ public class LoginActivity extends ActionBarActivity {
                 }
             });
         }
+    }
+
+    public void facebookLoginPressed(View view) {
+        List<String> permissions = new ArrayList<String>();
+        permissions.add("public_profile");
+        ParseFacebookUtils.logInWithReadPermissionsInBackground(LoginActivity.this, permissions, new LogInCallback() {
+            @Override
+            public void done(ParseUser user, ParseException err) {
+                if (user == null) {
+                    Log.d("Tipper", "Uh oh. The user cancelled the Facebook login.");
+                } else if (user.isNew()) {
+                    Log.d("Tipper", "User signed up and logged in through Facebook!");
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Log.d("Tipper", "User logged in through Facebook!");
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
     /**

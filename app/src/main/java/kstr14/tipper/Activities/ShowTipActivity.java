@@ -1,7 +1,7 @@
 package kstr14.tipper.Activities;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -45,7 +45,6 @@ public class ShowTipActivity extends ActionBarActivity {
         locationView = (TextView) findViewById(R.id.locationView);
 
         String ID = getIntent().getExtras().getString("ID");
-        System.out.println("Looking for Tip with ID: " + ID);
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
         query.whereEqualTo("uuid", ID);
 

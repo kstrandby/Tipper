@@ -1,18 +1,58 @@
 package kstr14.tipper.Activities;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
+import android.widget.ImageView;
+import android.widget.ListView;
 
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+
+import kstr14.tipper.Data.Group;
 import kstr14.tipper.R;
 
 public class ShowGroupActivity extends ActionBarActivity {
 
+    private ImageView imageView;
+    private ListView listView;
+    private Group group;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_group);
+
+        // initialize UI elements
+        imageView = (ImageView) findViewById(R.id.showGroupImageView);
+        listView = (ListView) findViewById(R.id.showGroupListView);
+
+        String ID = getIntent().getExtras().getString("ID");
+        ParseQuery<Group> query = ParseQuery.getQuery("Group");
+        query.whereEqualTo("uuid", ID);
+
+        query.getFirstInBackground(new GetCallback<Group>() {
+
+            @Override
+            public void done(Group object, ParseException e) {
+                if (e == null) {
+                    group = object;
+                    String name = group.getName();
+                    System.out.println(name);
+                    getSupportActionBar().setTitle(name);
+
+                    //TODO set image
+
+                } else {
+                    e.printStackTrace();
+                }
+            }
+
+        });
     }
 
 

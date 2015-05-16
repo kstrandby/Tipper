@@ -102,7 +102,8 @@
                 android:text="@string/facebook_login_button_label"
                 android:layout_gravity="center_horizontal"
                 android:textColor="#ffffffff"
-                android:layout_marginTop="50dp" />
+                android:layout_marginTop="50dp"
+                android:onClick="facebookLoginPressed" />
 
 
 
