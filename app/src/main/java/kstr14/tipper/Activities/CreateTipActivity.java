@@ -4,8 +4,8 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,12 +19,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
-
 
 import java.util.Calendar;
 import java.util.List;
@@ -69,16 +69,16 @@ public class CreateTipActivity extends ActionBarActivity {
         chosenEndDate = Calendar.getInstance();
 
         // initialize all UI elements
-        titleInput = (EditText) findViewById(R.id.titleInput);
-        descriptionInput = (EditText) findViewById(R.id.descriptionInput);
-        foodCheckBox = (CheckBox) findViewById(R.id.foodCategoryCheckBox);
-        drinksCheckBox = (CheckBox) findViewById(R.id.drinksCategoryCheckBox);
-        otherCheckBox = (CheckBox) findViewById(R.id.otherCategoryCheckBox);
-        priceSeekBar = (SeekBar) findViewById(R.id.seekBar);
-        priceView = (TextView) findViewById(R.id.priceView);
-        startDateView = (TextView) findViewById(R.id.startDateView);
-        endDateView = (TextView) findViewById(R.id.endDateView);
-        createButton = (Button) findViewById(R.id.createButton);
+        titleInput = (EditText) findViewById(R.id.createTip_ed_title);
+        descriptionInput = (EditText) findViewById(R.id.createTip_ed_description);
+        foodCheckBox = (CheckBox) findViewById(R.id.createTip_cb_foodCategory);
+        drinksCheckBox = (CheckBox) findViewById(R.id.createTip_cb_drinksCategory);
+        otherCheckBox = (CheckBox) findViewById(R.id.createTip_cb_otherCategory);
+        priceSeekBar = (SeekBar) findViewById(R.id.createTip_sb_price);
+        priceView = (TextView) findViewById(R.id.createTip_tv_price);
+        startDateView = (TextView) findViewById(R.id.createTip_tv_startDate);
+        endDateView = (TextView) findViewById(R.id.createTip_tv_endDate);
+        createButton = (Button) findViewById(R.id.createTip_b_create);
 
         // handle price seekbar changes
         priceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -90,12 +90,10 @@ public class CreateTipActivity extends ActionBarActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
 
@@ -131,7 +129,7 @@ public class CreateTipActivity extends ActionBarActivity {
                         .setMessage("")
                         .show();
             }
-            });
+        });
         }
 
 
@@ -185,7 +183,7 @@ public class CreateTipActivity extends ActionBarActivity {
         String title = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
         final Tip tip = new Tip();
-
+        String category = null;
         // input validation
         if(!foodCheckBox.isChecked() && !drinksCheckBox.isChecked() && !otherCheckBox.isChecked()) {
             Toast.makeText(getBaseContext(), "Please choose a category.", Toast.LENGTH_LONG).show();
@@ -194,8 +192,9 @@ public class CreateTipActivity extends ActionBarActivity {
             Toast.makeText(getBaseContext(), "Please input a title.", Toast.LENGTH_SHORT).show();
         } else {
             if (foodCheckBox.isChecked()) {
+                category = "food";
                 ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", "food");
+                query.whereEqualTo("name", category);
                 query.findInBackground(new FindCallback<ParseObject>() {
                     public void done(List<ParseObject> itemList, ParseException e) {
                         if (e == null) {
@@ -208,8 +207,9 @@ public class CreateTipActivity extends ActionBarActivity {
             }
 
             if (drinksCheckBox.isChecked()) {
+                category = "drinks";
                 ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", "drinks");
+                query.whereEqualTo("name", category);
                 query.findInBackground(new FindCallback<ParseObject>() {
                     public void done(List<ParseObject> itemList, ParseException e) {
                         if (e == null) {
@@ -221,8 +221,9 @@ public class CreateTipActivity extends ActionBarActivity {
                 });
             }
             if (otherCheckBox.isChecked()) {
+                category = "other";
                 ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", "other");
+                query.whereEqualTo("name", category);
                 query.findInBackground(new FindCallback<ParseObject>() {
                     public void done(List<ParseObject> itemList, ParseException e) {
                         if (e == null) {
@@ -242,11 +243,27 @@ public class CreateTipActivity extends ActionBarActivity {
             tip.setEndDate(chosenEndDate.getTime());
             tip.setStartDate(chosenStartDate.getTime());
             tip.setUuidString();
+            final String finalCategory = category;
             tip.saveInBackground(new SaveCallback() {
 
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
+
+                        // and now, make the relation from category to tip
+                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
+                        query.whereEqualTo("name", finalCategory);
+                        query.findInBackground(new FindCallback<ParseObject>() {
+                            public void done(List<ParseObject> itemList, ParseException e) {
+                                if (e == null) {
+                                    ((Category) itemList.get(0)).addTip(tip);
+                                    ((Category) itemList.get(0)).saveInBackground();
+                                } else {
+                                    Log.d("item", "Error: " + e.getMessage());
+                                }
+                            }
+                        });
+
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         setResult(RESULT_OK, intent);
                         finish();

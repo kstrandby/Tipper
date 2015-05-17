@@ -1,38 +1,18 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="kstr14.tipper.Activities.SearchTipActivity">
 
-    <SearchView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/keywordsSearchView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:queryHint="Keywords (optional)" />
-
-    <SearchView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/locationSearchView"
-        android:layout_below="@+id/keywordsSearchView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:queryHint="Location" />
-
     <TableLayout
         android:layout_width="fill_parent"
         android:layout_height="50dp"
         android:id="@+id/tableLayout2"
-        android:layout_below="@+id/locationSearchView"
+        android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="31dp">
@@ -45,37 +25,41 @@
             android:layout_gravity="center_horizontal" >
 
             <CheckBox
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="FOOD"
-                android:id="@+id/checkBox"
+                android:id="@+id/searchTip_cb_food"
                 android:layout_column="0"
                 android:checked="true" />
 
             <CheckBox
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="DRINKS"
-                android:id="@+id/checkBox2"
+                android:id="@+id/searchTip_cb_drinks"
                 android:layout_column="1"
                 android:checked="false" />
 
             <CheckBox
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="OTHER"
-                android:id="@+id/checkBox3"
+                android:id="@+id/searchTip_cb_other"
                 android:layout_column="2"
                 android:checked="false" />
         </TableRow>
     </TableLayout>
 
     <TextView
+        style="@style/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Categories:"
         android:id="@+id/textView"
-        android:layout_below="@+id/locationSearchView"
+        android:layout_below="@+id/searchTip_ed_location"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:textStyle="bold" />
@@ -83,19 +67,23 @@
     <SeekBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/seekBar2"
+        android:id="@+id/searchTip_sb_price"
         android:layout_below="@+id/tableLayout2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="31dp"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        android:max="100"
+        android:progress="50"
+        android:indeterminate="false" />
 
     <TextView
+        style="@style/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Price:"
-        android:id="@+id/priceTextView"
+        android:text="Max price: $50"
+        android:id="@+id/searchTip_tv_price"
         android:layout_below="@+id/tableLayout2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -105,7 +93,7 @@
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="SEARCH"
-        android:id="@+id/searchButton"
+        android:id="@+id/searchTip_b_search"
         android:background="@color/primary_dark"
         android:layout_row="14"
         android:layout_column="1"
@@ -115,5 +103,26 @@
         android:onClick="searchTip"
         android:textColor="@color/accent"
         android:textStyle="bold" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchTip_ed_location"
+        android:layout_alignEnd="@+id/tableLayout2"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/searchTip_ed_keywords"
+        android:hint="Location"
+        android:textColor="@color/primary"
+        android:textColorHint="@color/primary" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchTip_ed_keywords"
+        android:layout_alignEnd="@+id/searchTip_ed_location"
+        android:textColor="@color/primary"
+        android:hint="Keywords (optional)"
+        android:textColorHint="@color/primary" />
 
 </RelativeLayout>

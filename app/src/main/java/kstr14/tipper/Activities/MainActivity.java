@@ -1,19 +1,22 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.parse.ParseUser;
 
+import kstr14.tipper.Adapters.TipAdapter;
+import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.R;
-import kstr14.tipper.Adapters.TipAdapter;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -22,15 +25,32 @@ public class MainActivity extends ActionBarActivity {
 
     private ListView listView;
     private TipAdapter adapter;
+    private ImageButton foodButton;
+    private ImageButton drinksButton;
+    private ImageButton otherButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = (ListView) findViewById(R.id.listView);
+        // initialize UI elements
+        listView = (ListView) findViewById(R.id.main_lv_tips);
+        foodButton = (ImageButton) findViewById(R.id.main_ib_food);
+        drinksButton = (ImageButton) findViewById(R.id.main_ib_drinks);
+        otherButton = (ImageButton) findViewById(R.id.main_ib_other);
+
+        // set list adapter
         adapter = new TipAdapter(this);
         listView.setAdapter(adapter);
+
+        // set images for imageButtons
+        Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
+        foodButton.setImageBitmap(img);
+        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.drinks, 256, 256);
+        drinksButton.setImageBitmap(img);
+        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
+        otherButton.setImageBitmap(img);
 
         // set click listener for tips in list to move to show tip activity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -98,5 +118,26 @@ public class MainActivity extends ActionBarActivity {
                 updateTipList();
             }
         }
+    }
+
+    public void foodCategoryClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
+        intent.putExtra("source", "MainActivity");
+        intent.putExtra("category", "food");
+        startActivity(intent);
+    }
+
+    public void drinksCategoryClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
+        intent.putExtra("source", "MainActivity");
+        intent.putExtra("category", "drinks");
+        startActivity(intent);
+    }
+
+    public void otherCategoryClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
+        intent.putExtra("source", "MainActivity");
+        intent.putExtra("category", "other");
+        startActivity(intent);
     }
 }

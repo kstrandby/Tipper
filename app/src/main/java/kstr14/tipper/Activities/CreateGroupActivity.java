@@ -30,10 +30,10 @@ public class CreateGroupActivity extends ActionBarActivity {
         setContentView(R.layout.activity_create_group);
 
         // initialize UI elements
-        groupNameEditText = (EditText) findViewById(R.id.groupNameInput);
-        groupDescriptionEditText = (EditText) findViewById(R.id.groupDescriptionInput);
-        closedGroupRadioButton = (RadioButton) findViewById(R.id.closedGroupRadioButton);
-        openGroupRadioButton = (RadioButton) findViewById(R.id.openGroupRadioButton);
+        groupNameEditText = (EditText) findViewById(R.id.createGroup_ed_groupName);
+        groupDescriptionEditText = (EditText) findViewById(R.id.createGroup_ed_groupDescription);
+        closedGroupRadioButton = (RadioButton) findViewById(R.id.createGroup_rb_closedGroup);
+        openGroupRadioButton = (RadioButton) findViewById(R.id.createGroup_rb_openGroup);
     }
 
 

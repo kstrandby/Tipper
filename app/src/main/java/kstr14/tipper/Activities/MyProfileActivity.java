@@ -1,19 +1,32 @@
 package kstr14.tipper.Activities;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.parse.ParseUser;
 
 import kstr14.tipper.R;
 
 
 public class MyProfileActivity extends ActionBarActivity {
 
+    private TextView usernameView;
+    private TextView emailView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_profile);
+
+        // initialize UI elements
+        usernameView = (TextView) findViewById(R.id.myProfile_tv_username);
+        emailView = (TextView) findViewById(R.id.myProfile_tv_email);
+
+        usernameView.setText(ParseUser.getCurrentUser().getUsername());
+        emailView.setText(ParseUser.getCurrentUser().getEmail());
     }
 
 

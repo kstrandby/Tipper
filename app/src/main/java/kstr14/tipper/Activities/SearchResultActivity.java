@@ -1,39 +1,67 @@
 package kstr14.tipper.Activities;
 
-import android.support.v7.app.ActionBarActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Adapter;
 import android.widget.ListView;
 
-import kstr14.tipper.Adapters.GroupAdapter;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+
+import java.util.List;
+
+import kstr14.tipper.Adapters.TipBaseAdapter;
+import kstr14.tipper.Data.Category;
+import kstr14.tipper.Data.Tip;
 import kstr14.tipper.R;
-import kstr14.tipper.Adapters.TipAdapter;
 
 
 public class SearchResultActivity extends ActionBarActivity {
 
     private ListView listView;
-    private Adapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
+        listView = (ListView) findViewById(R.id.searchResult_lv_result);
 
-        listView = (ListView) findViewById(R.id.searchResultListView);
+        // check the source of the intent to know how to set up adapter
+        Intent intent = getIntent();
+        String source = intent.getExtras().getString("source");
+        if(source.equals("MainActivity")) {
 
-        String searchType = getIntent().getExtras().getString("searchType");
-        if(searchType.equals("Tip")) {
-            // set tipadapter
-            adapter = new TipAdapter(this);
-            listView.setAdapter((android.widget.ListAdapter) adapter);
+            final String category = intent.getExtras().getString("category");
 
-        } else if (searchType.equals("Group")) {
-            // set group adapter
-            adapter = new GroupAdapter(this);
-            listView.setAdapter((android.widget.ListAdapter) adapter);
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
+            query.whereEqualTo("name", category);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> itemList, ParseException e) {
+                    if (e == null) {
+                        // now get all the tips of that category
+                        Category catObject = (Category) itemList.get(0);
+                        catObject.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
+                            public void done(List<Tip> itemList, ParseException e) {
+                                if (e == null) {
+                                    TipBaseAdapter adapter = new TipBaseAdapter(getApplicationContext(), itemList);
+                                    listView.setAdapter(adapter);
+                                } else {
+                                    Log.d("item", "Error: " + e.getMessage());
+                                }
+                            }
+                        });
+
+
+                    } else {
+                        Log.d("item", "Error: " + e.getMessage());
+                    }
+                }
+            });
         }
     }
 

@@ -1,21 +1,39 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.SeekBar;
 
 import kstr14.tipper.R;
 
 
 public class SearchTipActivity extends ActionBarActivity {
 
+    private EditText keywordsInput;
+    private EditText locationInput;
+    private SeekBar priceSeekBarInput;
+    private CheckBox foodCheckBox;
+    private CheckBox drinksCheckBox;
+    private CheckBox otherCheckBox;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_tip);
+
+        // initialize UI elements
+        keywordsInput = (EditText) findViewById(R.id.searchTip_ed_keywords);
+        locationInput = (EditText) findViewById(R.id.searchTip_ed_location);
+        priceSeekBarInput = (SeekBar) findViewById(R.id.searchTip_sb_price);
+        foodCheckBox = (CheckBox) findViewById(R.id.searchTip_cb_food);
+        drinksCheckBox = (CheckBox) findViewById(R.id.searchTip_cb_drinks);
+        otherCheckBox = (CheckBox) findViewById(R.id.searchTip_cb_other);
     }
 
 

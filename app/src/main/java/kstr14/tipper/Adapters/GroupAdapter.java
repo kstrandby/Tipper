@@ -48,9 +48,9 @@ public class GroupAdapter extends ParseQueryAdapter<Group> {
         }
         */
 
-        TextView nameView = (TextView) view.findViewById(R.id.groupNameTextView);
-        TextView locationView = (TextView) view.findViewById(R.id.groupLocationTextView);
-        ImageView imageView = (ImageView) view.findViewById(R.id.groupImageView);
+        TextView nameView = (TextView) view.findViewById(R.id.groupItem_tv_groupName);
+        TextView locationView = (TextView) view.findViewById(R.id.groupItem_tv_location);
+        ImageView imageView = (ImageView) view.findViewById(R.id.groupItem_iv_groupImage);
         nameView.setText(group.getName());
         return view;
     }

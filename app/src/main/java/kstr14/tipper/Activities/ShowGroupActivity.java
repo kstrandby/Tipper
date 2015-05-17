@@ -28,8 +28,8 @@ public class ShowGroupActivity extends ActionBarActivity {
         setContentView(R.layout.activity_show_group);
 
         // initialize UI elements
-        imageView = (ImageView) findViewById(R.id.showGroupImageView);
-        listView = (ListView) findViewById(R.id.showGroupListView);
+        imageView = (ImageView) findViewById(R.id.showGroup_iv_groupImage);
+        listView = (ListView) findViewById(R.id.showGroup_lv_groups);
 
         String ID = getIntent().getExtras().getString("ID");
         ParseQuery<Group> query = ParseQuery.getQuery("Group");

@@ -48,7 +48,7 @@ public class MyGroupsActivity extends ActionBarActivity {
         });
 
         // no groups to show
-        TextView msg = (TextView) findViewById(R.id.empty);
+        TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
         msg.setText("You are currently not a member of any groups.");
         listView.setEmptyView(msg);
     }

@@ -6,7 +6,46 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="kstr14.tipper.Activities.MyProfileActivity">
 
-    <TextView android:text="@string/hello_world" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Username: "
+        android:id="@+id/myProfile_tv_username_head"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:layout_margin="5dp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Email: "
+        android:id="@+id/myProfile_tv_email_head"
+        android:textSize="20dp"
+        android:layout_below="@+id/myProfile_tv_username_head"
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/myProfile_tv_username_head"
+        android:textStyle="bold"
+        android:layout_margin="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="username "
+        android:id="@+id/myProfile_tv_username"
+        android:textSize="20dp"
+        android:layout_alignBottom="@+id/myProfile_tv_username_head"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/myProfile_tv_username_head" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="email"
+        android:id="@+id/myProfile_tv_email"
+        android:textSize="20dp"
+        android:layout_alignTop="@+id/myProfile_tv_email_head"
+        android:layout_alignStart="@+id/myProfile_tv_username"
+        android:layout_alignEnd="@+id/myProfile_tv_username" />
 </RelativeLayout>

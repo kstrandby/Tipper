@@ -18,7 +18,7 @@
         <ImageView
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:id="@+id/showGroupImageView"
+            android:id="@+id/showGroup_iv_groupImage"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="30dp"
             android:src="@drawable/ic_action_group_big" />
@@ -27,16 +27,16 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/showGroupListView"
+        android:id="@+id/showGroup_lv_groups"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/linearLayout"
-        android:layout_above="@+id/leaveGroup" />
+        android:layout_above="@+id/showGroups_b_leaveGroup" />
 
     <Button
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="Leave group"
-        android:id="@+id/leaveGroup"
+        android:id="@+id/showGroups_b_leaveGroup"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:textColor="#ffffff"

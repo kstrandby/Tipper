@@ -17,10 +17,9 @@
         <ImageView
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:id="@+id/image"
+            android:id="@+id/showTip_iv_tipImage"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="20dp"
-            android:src="@drawable/food" />
+            android:layout_margin="20dp"/>
 
         <LinearLayout
             android:orientation="horizontal"
@@ -34,17 +33,16 @@
             <ImageButton
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:id="@+id/upvoteButton"
-                android:background="@drawable/thumb_sdown"
+                android:id="@+id/showTip_ib_upvote"
                 android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp" />
+                android:layout_marginRight="5dp"
+                android:background="@null"/>
 
             <TextView
-                style="@style/text_accent"
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="\t0\t"
-                android:id="@+id/upvotes"
+                android:id="@+id/showTip_tv_upvotes"
                 android:textStyle="bold"
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="2dp"
@@ -54,38 +52,37 @@
             <ImageButton
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:id="@+id/downvoteButton"
-                android:background="@drawable/thumbs_up"
+                android:id="@+id/showTip_ib_downvote"
                 android:layout_marginLeft="20dp"
-                android:layout_marginRight="5dp" />
+                android:layout_marginRight="5dp"
+                android:background="@null"/>
 
             <TextView
-                style="@style/text_accent"
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="\t0\t"
-                android:id="@+id/downvotes"
+                android:id="@+id/showTip_tv_downvotes"
                 android:textStyle="bold"
                 android:layout_marginTop="7dp"
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="20dp" />
 
-            <ImageView
+            <ImageButton
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:id="@+id/favouriteButton"
-                android:background="@drawable/star"
+                android:id="@+id/showTip_ib_favourites"
                 android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp" />
+                android:layout_marginRight="5dp"
+                android:background="@null"/>
 
         </LinearLayout>
 
         <TextView
+            style="@style/text"
             android:layout_width="279dp"
             android:layout_height="wrap_content"
-            android:text="Description of tip...."
-            android:id="@+id/descriptionView"
+            android:id="@+id/showTip_tv_description"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
             android:layout_weight="0.20" />
@@ -100,16 +97,14 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/imageView2"
-                android:src="@android:drawable/ic_menu_month" />
+                android:id="@+id/showTip_iv_dateIcon" />
 
             <TextView
-                style="@style/text_accent"
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Monday, 11-05-2015 12:00"
-                android:id="@+id/dateView"
-                android:layout_marginTop="5dp" />
+                android:id="@+id/showTip_tv_date"
+                android:layout_marginRight="5dp" />
 
         </LinearLayout>
 
@@ -123,16 +118,14 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/imageView3"
-                android:src="@android:drawable/ic_menu_directions" />
+                android:id="@+id/showTip_iv_locationIcon"/>
 
             <TextView
-                style="@style/text_accent"
+                style="@style/text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Caulfield, Melbourne"
-                android:id="@+id/locationView"
-                android:layout_marginTop="5dp" />
+                android:id="@+id/showTip_tv_location"
+                android:layout_marginRight="5dp" />
 
         </LinearLayout>
     </LinearLayout>

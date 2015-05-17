@@ -15,8 +15,8 @@
 
         <ListView
             android:layout_width="match_parent"
-            android:layout_height="413dp"
-            android:id="@+id/listView" />
+            android:layout_height="379dp"
+            android:id="@+id/main_lv_tips" />
 
         <LinearLayout
             android:orientation="horizontal"
@@ -28,17 +28,29 @@
             <ImageButton
                 android:layout_width="110dp"
                 android:layout_height="match_parent"
-                android:id="@+id/imageButton" />
+                android:id="@+id/main_ib_food"
+                android:adjustViewBounds="true"
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:onClick="foodCategoryClicked" />
 
             <ImageButton
                 android:layout_width="110dp"
                 android:layout_height="match_parent"
-                android:id="@+id/imageButton2" />
+                android:id="@+id/main_ib_drinks"
+                android:adjustViewBounds="true"
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:onClick="drinksCategoryClicked" />
 
             <ImageButton
                 android:layout_width="110dp"
                 android:layout_height="match_parent"
-                android:id="@+id/imageButton3" />
+                android:id="@+id/main_ib_other"
+                android:adjustViewBounds="true"
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:onClick="otherCategoryClicked" />
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

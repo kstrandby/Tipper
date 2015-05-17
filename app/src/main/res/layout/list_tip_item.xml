@@ -31,7 +31,8 @@
                 android:textStyle="bold"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp" />
+                android:layout_marginRight="5dp"
+                android:textColor="@color/primary" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -41,7 +42,8 @@
                 android:layout_marginRight="5dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp" />
+                android:layout_marginBottom="5dp"
+                android:textColor="@color/primary" />
         </LinearLayout>
 
         <TextView
@@ -50,6 +52,7 @@
             android:text="Price"
             android:id="@+id/priceTextViewListItem"
             android:layout_margin="20dp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/primary" />
     </LinearLayout>
 </LinearLayout>

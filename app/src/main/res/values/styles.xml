@@ -17,9 +17,9 @@
         <item name="colorAccent">@color/accent</item>
     </style>
 
-    <style name="text_accent" parent="@android:style/TextAppearance.Medium">
-        <item name="android:textColor">@color/accent </item>
-        <item name="android:typeface">monospace</item>
+
+    <style name="text" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textColor">@color/primary </item>
     </style>
 
 
