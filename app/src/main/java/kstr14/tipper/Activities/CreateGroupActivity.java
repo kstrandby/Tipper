@@ -15,6 +15,7 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import kstr14.tipper.Data.Group;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 public class CreateGroupActivity extends ActionBarActivity {
@@ -62,7 +63,7 @@ public class CreateGroupActivity extends ActionBarActivity {
     public void createGroup(View view) {
         String name = groupNameEditText.getText().toString();
         String description = groupDescriptionEditText.getText().toString();
-        Group group = new Group();
+        final Group group = new Group();
 
         // validate input
         if(name.length() == 0) {
@@ -78,13 +79,18 @@ public class CreateGroupActivity extends ActionBarActivity {
                 group.setClosed(false);
             }
             // add current user to the group
-            group.addUser(ParseUser.getCurrentUser());
+            group.addUser((TipperUser) ParseUser.getCurrentUser());
             group.setCreator(ParseUser.getCurrentUser());
             group.setUuidString();
             group.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
+                        // and now relate the group to the user as well
+                        ParseUser.getCurrentUser().getRelation("groups").add(group);
+                        ParseUser.getCurrentUser().saveInBackground();
+
+                        // and start intent to MyGroupsActivity
                         Intent intent = new Intent(getApplicationContext(), MyGroupsActivity.class);
                         setResult(RESULT_OK, intent);
                         finish();

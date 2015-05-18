@@ -13,11 +13,9 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.facebook.FacebookSdk;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
-import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
@@ -27,9 +25,7 @@ import java.util.List;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import kstr14.tipper.Data.Category;
-import kstr14.tipper.Data.Group;
-import kstr14.tipper.Data.Tip;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 
@@ -53,14 +49,7 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
 
-        // initalize facebook
-        FacebookSdk.sdkInitialize(getApplicationContext());
 
-        // Initialize Parse
-        ParseObject.registerSubclass(Tip.class);
-        ParseObject.registerSubclass(Category.class);
-        ParseObject.registerSubclass(Group.class);
-        ParseObject.registerSubclass(ParseUser.class);
 
         // check cache for current user - if found go directly to MainActivity
         ParseUser currentUser = ParseUser.getCurrentUser();
@@ -147,7 +136,7 @@ public class LoginActivity extends ActionBarActivity {
         } else if (!validateEmail(email)) {
             Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
         } else {
-            ParseUser user = new ParseUser();
+            TipperUser user = new TipperUser();
             user.setUsername(username);
             user.setPassword(password1);
             user.setEmail(email);

@@ -10,9 +10,8 @@ import android.graphics.BitmapFactory;
 public class BitmapHelper {
 
     public static Bitmap decodeBitmapFromResource(Resources res, int id, int width, int height) {
-        // First decode with inJustDecodeBounds=true to check dimensions
         BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
+        options.inJustDecodeBounds = true; // avoid memory allocation while decoding image
         BitmapFactory.decodeResource(res, id, options);
 
         // Calculate inSampleSize

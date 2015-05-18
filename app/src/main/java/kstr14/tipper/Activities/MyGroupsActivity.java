@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,17 +14,24 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import kstr14.tipper.Adapters.GroupAdapter;
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseUser;
+
+import java.util.List;
+
+import kstr14.tipper.Adapters.GroupBaseAdapter;
 import kstr14.tipper.Data.Group;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
+// TODO reload list when group has been created
 
 public class MyGroupsActivity extends ActionBarActivity {
 
     public static final int CREATE_GROUP_REQUEST = 2;
 
     private ListView listView;
-    private GroupAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +39,20 @@ public class MyGroupsActivity extends ActionBarActivity {
         setContentView(R.layout.activity_my_groups);
 
         listView = (ListView) findViewById(R.id.myGroupsListView);
-        adapter = new GroupAdapter(this);
-        listView.setAdapter(adapter);
+
+        // fetch the current user's groups
+        TipperUser user = (TipperUser) ParseUser.getCurrentUser();
+        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+            public void done(List<Group> itemList, ParseException e) {
+                if (e == null) {
+                    GroupBaseAdapter adapter = new GroupBaseAdapter(getApplicationContext(), itemList);
+                    listView.setAdapter(adapter);
+                } else {
+                    Log.d("item", "Error: " + e.getMessage());
+                }
+            }
+        });;
+
 
         // set click listener for groups in list to move to show group activity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -92,13 +112,7 @@ public class MyGroupsActivity extends ActionBarActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if(requestCode == CREATE_GROUP_REQUEST) {
             if(resultCode == RESULT_OK) {
-                updateGroupList();
             }
         }
-    }
-
-    private void updateGroupList() {
-        adapter.loadObjects();
-        listView.setAdapter(adapter);
     }
 }

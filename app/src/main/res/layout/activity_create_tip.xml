@@ -19,7 +19,8 @@
         android:layout_alignParentStart="true"
         android:hint="Title"
         android:layout_row="0"
-        android:layout_column="0" />
+        android:layout_column="0"
+        android:textColorHint="@color/accent" />
 
     <EditText
         style="@style/text"
@@ -33,11 +34,12 @@
         android:layout_alignParentStart="true"
         android:hint="Description (optional)"
         android:layout_alignRight="@+id/tableLayout"
-        android:layout_alignEnd="@+id/tableLayout" />
+        android:layout_alignEnd="@+id/tableLayout"
+        android:textColorHint="@color/accent" />
 
     <TableLayout
         android:layout_width="fill_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:id="@+id/tableLayout"
         android:layout_alignRight="@+id/createTip_ed_title"
         android:layout_alignEnd="@+id/createTip_ed_title"
@@ -46,8 +48,7 @@
         android:layout_below="@+id/createTip_ed_description"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp">
+        android:layout_marginTop="10dp">
 
         <TableRow
             android:layout_width="fill_parent"
@@ -63,7 +64,8 @@
                 android:text="FOOD"
                 android:id="@+id/createTip_cb_foodCategory"
                 android:layout_column="0"
-                android:checked="true" />
+                android:checked="true"
+                android:textSize="15dp" />
 
             <CheckBox
                 style="@style/text"
@@ -72,7 +74,8 @@
                 android:text="DRINKS"
                 android:id="@+id/createTip_cb_drinksCategory"
                 android:layout_column="1"
-                android:checked="false"/>
+                android:checked="false"
+                android:textSize="15dp" />
 
             <CheckBox
                 style="@style/text"
@@ -81,7 +84,8 @@
                 android:text="OTHER"
                 android:id="@+id/createTip_cb_otherCategory"
                 android:layout_column="2"
-                android:checked="false"/>
+                android:checked="false"
+                android:textSize="15dp" />
         </TableRow>
     </TableLayout>
 
@@ -94,19 +98,19 @@
         android:textSize="20sp"
         android:layout_row="14"
         android:layout_column="1"
+        android:onClick="createTip"
+        android:background="#6c71a5"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="45dp"
-        android:onClick="createTip"
-        android:background="#6c71a5" />
+        android:layout_marginBottom="30dp" />
 
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/createTip_sb_price"
         android:layout_below="@+id/tableLayout"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp" />
 
     <TextView
         style="@style/text"
@@ -114,70 +118,168 @@
         android:layout_height="wrap_content"
         android:text="Price: 0 AUD"
         android:id="@+id/createTip_tv_price"
-        android:layout_alignParentStart="true"
         android:textStyle="bold"
+        android:textSize="15dp"
         android:layout_below="@+id/createTip_sb_price"
-        android:layout_alignParentLeft="true"
-        android:textSize="18dp" />
+        android:layout_alignStart="@+id/tableLayout" />
 
     <TextView
         style="@style/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Start: \t\t\t 05-05-2015 \t\t 12:00"
-        android:id="@+id/createTip_tv_startDate"
-        android:layout_marginTop="20dp"
-        android:layout_below="@+id/createTip_tv_price"
-        android:layout_alignLeft="@+id/createTip_b_create"
-        android:layout_alignStart="@+id/createTip_b_create"
-        android:clickable="true"/>
-
-    <TextView
-        style="@style/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="End: \t\t\t\t 05-05-2015 \t\t 14:00"
-        android:id="@+id/createTip_tv_endDate"
-        android:layout_marginTop="20dp"
-        android:layout_below="@+id/createTip_tv_startDate"
-        android:layout_alignLeft="@+id/createTip_tv_startDate"
-        android:layout_alignStart="@+id/createTip_tv_startDate"
-        android:clickable="true"/>
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="NOTE: If the group set is a private group, this tip will only be visible for members of the group."
+        android:id="@+id/createTip_tv_info"
+        android:layout_below="@+id/createTip_ll_group"
+        android:layout_alignParentStart="true"
+        android:textSize="12dp" />
 
     <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="25dp"
-        android:layout_below="@+id/createTip_tv_endDate"
-        android:layout_alignParentLeft="true"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/createTip_ll_endDate"
         android:layout_alignParentStart="true"
-        android:clickable="true"
-        android:id="@+id/repeatLinearLayout"
-        android:theme="@android:style/Widget.DeviceDefault.Light.ListView">
+        android:id="@+id/createTip_ll_repeat"
+        android:layout_marginTop="15dp">
 
         <TextView
             style="@style/text"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="Repeat"
-            android:id="@+id/textView2"
+            android:id="@+id/createTip_tv_repeatHead"
             android:textStyle="bold"
-            android:textSize="18dp"
-            android:layout_below="@+id/createTip_tv_endDate"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:focusable="false"/>
+            android:layout_gravity="center" />
+
+        <Spinner
+            android:layout_width="fill_parent"
+            android:layout_height="30dp"
+            android:id="@+id/createTip_s_repeatStyle"
+            android:spinnerMode="dropdown" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/createTip_ll_repeat"
+        android:id="@+id/createTip_ll_group"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="15dp">
 
         <TextView
             style="@style/text"
-            android:layout_width="wrap_content"
+            android:layout_width="80dp"
             android:layout_height="wrap_content"
-            android:text="One time event"
-            android:id="@+id/createTip_tv_repeatStyle"
-            android:focusable="false"/>
+            android:text="Group"
+            android:id="@+id/createTip_tv_groupHead"
+            android:textStyle="bold"
+            android:layout_gravity="center" />
+
+        <Spinner
+            android:layout_width="fill_parent"
+            android:layout_height="30dp"
+            android:id="@+id/createTip_s_groupChoice"
+            android:spinnerMode="dropdown" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/createTip_tv_price"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/createTip_ll_startDate"
+        android:layout_marginTop="15dp">
+
+        <TextView
+            style="@style/text"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Start:"
+            android:id="@+id/createTip_tv_startDateHead"
+            android:layout_below="@+id/createTip_tv_price"
+            android:layout_alignLeft="@+id/createTip_b_create"
+            android:layout_alignStart="@+id/createTip_b_create"
+            android:textSize="15dp"
+            android:textStyle="bold" />
+
+        <TextView
+            style="@style/text"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="dd-mm-yyyy"
+            android:id="@+id/createTip_tv_startDate"
+            android:layout_below="@+id/createTip_tv_price"
+            android:layout_alignLeft="@+id/createTip_b_create"
+            android:layout_alignStart="@+id/createTip_b_create"
+            android:textSize="15dp" />
+
+        <TextView
+            style="@style/text"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="hh:mm"
+            android:id="@+id/createTip_tv_startTime"
+            android:layout_below="@+id/createTip_tv_price"
+            android:layout_alignLeft="@+id/createTip_b_create"
+            android:layout_alignStart="@+id/createTip_b_create"
+            android:textSize="15dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/createTip_ll_startDate"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/createTip_ll_endDate">
+
+        <TextView
+            style="@style/text"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="End:"
+            android:id="@+id/createTip_tv_endDateHead"
+            android:layout_below="@+id/createTip_tv_startDateHead"
+            android:layout_alignLeft="@+id/createTip_tv_startDateHead"
+            android:layout_alignStart="@+id/createTip_tv_startDateHead"
+            android:textSize="15dp"
+            android:textStyle="bold" />
+
+        <TextView
+            style="@style/text"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="dd-mm-yyyy"
+            android:id="@+id/createTip_tv_endDate"
+            android:layout_below="@+id/createTip_tv_price"
+            android:layout_alignLeft="@+id/createTip_b_create"
+            android:layout_alignStart="@+id/createTip_b_create"
+            android:textSize="15dp" />
+
+        <TextView
+            style="@style/text"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="hh:mm"
+            android:id="@+id/createTip_tv_endTime"
+            android:layout_below="@+id/createTip_tv_price"
+            android:layout_alignLeft="@+id/createTip_b_create"
+            android:layout_alignStart="@+id/createTip_b_create"
+            android:textSize="15dp" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -128,5 +128,25 @@
                 android:layout_marginRight="5dp" />
 
         </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp" >
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/showTip_iv_priceIcon" />
+
+            <TextView
+                style="@style/text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/showTip_tv_price"
+                android:layout_marginRight="5dp" />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

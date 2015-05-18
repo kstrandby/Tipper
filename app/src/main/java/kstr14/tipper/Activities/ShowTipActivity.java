@@ -18,9 +18,6 @@ import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.R;
 
-//TODO show PRICE as well in screen!!
-
-
 public class ShowTipActivity extends ActionBarActivity {
 
     private Tip tip;
@@ -33,8 +30,10 @@ public class ShowTipActivity extends ActionBarActivity {
     private TextView descriptionView;
     private ImageView dateIcon;
     private ImageView locationIcon;
+    private ImageView priceIcon;
     private TextView dateView;
     private TextView locationView;
+    private TextView priceView;
 
 
     @Override
@@ -54,8 +53,10 @@ public class ShowTipActivity extends ActionBarActivity {
         descriptionView = (TextView) findViewById(R.id.showTip_tv_description);
         dateIcon = (ImageView) findViewById(R.id.showTip_iv_dateIcon);
         locationIcon = (ImageView) findViewById(R.id.showTip_iv_locationIcon);
+        priceIcon = (ImageView) findViewById(R.id.showTip_iv_priceIcon);
         dateView = (TextView) findViewById(R.id.showTip_tv_date);
         locationView = (TextView) findViewById(R.id.showTip_tv_location);
+        priceView = (TextView) findViewById(R.id.showTip_tv_price);
 
         // set images of ImageButtons and ImageViews
         Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_up, 128, 128);
@@ -85,7 +86,7 @@ public class ShowTipActivity extends ActionBarActivity {
                     downvoteView.setText(String.valueOf(tip.getDownvotes()));
                     descriptionView.setText(tip.getDescription());
                     dateView.setText(tip.getStartDate().toString());
-
+                    priceView.setText("$ " + tip.getPrice());
                     //TODO set image and location
                     locationView.setText("Location unknown");
 

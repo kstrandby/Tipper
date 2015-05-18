@@ -1,6 +1,7 @@
 package kstr14.tipper.Data;
 
 import com.parse.ParseClassName;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
 
@@ -95,7 +96,6 @@ public class Tip extends ParseObject {
         return getString("uuid");
     }
 
-
     public ParseRelation<Category> getCategoriesRelation() {
         return getRelation("categories");
     }
@@ -108,5 +108,13 @@ public class Tip extends ParseObject {
     public void removeCategory(Category category) {
         getCategoriesRelation().remove(category);
         saveInBackground();
+    }
+
+    public ParseFile getImage() {
+        return getParseFile("image");
+    }
+
+    public void setImage(ParseFile file) {
+        put("image", file);
     }
 }

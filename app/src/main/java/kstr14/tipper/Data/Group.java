@@ -46,16 +46,16 @@ public class Group extends ParseObject {
         return getParseUser("creator");
     }
 
-    public ParseRelation<ParseUser> getUsers() {
+    public ParseRelation<TipperUser> getUsers() {
         return getRelation("users");
     }
 
-    public void addUser(ParseUser user) {
+    public void addUser(TipperUser user) {
         getUsers().add(user);
         saveInBackground();
     }
 
-    public void removeUser(ParseUser user) {
+    public void removeUser(TipperUser user) {
         getUsers().remove(user);
         saveInBackground();
     }
