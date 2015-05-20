@@ -13,11 +13,13 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.parse.SignUpCallback;
+import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.List;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
@@ -41,6 +44,9 @@ public class LoginActivity extends ActionBarActivity {
     private EditText passwordSignup;
     private EditText reenterPasswordSignup;
 
+    private Application app;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +55,7 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
 
-
-
-        // check cache for current user - if found go directly to MainActivity
-        ParseUser currentUser = ParseUser.getCurrentUser();
-        if(currentUser != null) {
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            startActivity(intent);
-        }
+        app = ((Application)getApplicationContext());
 
         // otherwise set fragment to the default login screen
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
@@ -101,14 +100,23 @@ public class LoginActivity extends ActionBarActivity {
         // fetch input and attempt login
         String username = usernameDefaultLogin.getText().toString();
         String password = passwordDefaultLogin.getText().toString();
-        ParseUser.logInInBackground(username, password, new LogInCallback() {
-            public void done(ParseUser user, ParseException e) {
-                 if (user != null) {
-                      Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                      startActivity(intent);
-                 } else {
-                      Toast.makeText(getApplicationContext(), "Login failed.", Toast.LENGTH_SHORT).show();
-                 }
+
+        ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+        query.whereEqualTo("username", username);
+        query.whereEqualTo("password", password);
+        query.findInBackground(new FindCallback<TipperUser>() {
+            @Override
+            public void done(List<TipperUser> list, ParseException e) {
+                if (!list.isEmpty()) {
+                    System.out.println(list.get(0));
+                    TipperUser user = list.get(0);
+                    app.setCurrentUser(user);
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Login failed.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -136,18 +144,16 @@ public class LoginActivity extends ActionBarActivity {
         } else if (!validateEmail(email)) {
             Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
         } else {
-            TipperUser user = new TipperUser();
+            final TipperUser user = new TipperUser();
             user.setUsername(username);
             user.setPassword(password1);
             user.setEmail(email);
-            user.signUpInBackground(new SignUpCallback() {
+            user.saveInBackground(new SaveCallback() {
+                @Override
                 public void done(ParseException e) {
-                    if (e == null) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Sign up failed. Please try again.", Toast.LENGTH_SHORT).show();
-                    }
+                    app.setCurrentUser(user);
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
                 }
             });
         }

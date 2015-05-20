@@ -1,7 +1,7 @@
 package kstr14.tipper;
 
-import com.facebook.FacebookSdk;
 import com.parse.Parse;
+import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 
 import kstr14.tipper.Data.Category;
@@ -15,21 +15,32 @@ import kstr14.tipper.Data.TipperUser;
 
 public class Application extends android.app.Application {
 
+    private TipperUser currentUser;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "arag2jjTvkvqlVVyv4jM41m1Y5uFLcMB3Thz4sAQ", "gPzHogMpGzBVfJmsd7hA8WMWKPcWlZy2py3bMH1x");
-
-        // initalize facebook
-        FacebookSdk.sdkInitialize(getApplicationContext());
-
         // Initialize Parse
         ParseObject.registerSubclass(Tip.class);
         ParseObject.registerSubclass(Category.class);
         ParseObject.registerSubclass(Group.class);
         ParseObject.registerSubclass(TipperUser.class);
 
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "arag2jjTvkvqlVVyv4jM41m1Y5uFLcMB3Thz4sAQ", "gPzHogMpGzBVfJmsd7hA8WMWKPcWlZy2py3bMH1x");
+
+        // initalize facebook
+        ParseFacebookUtils.initialize(getApplicationContext());
+
+
+    }
+
+    public TipperUser getCurrentUser() {
+        return currentUser;
+    }
+
+    public void setCurrentUser(TipperUser user) {
+        currentUser = user;
     }
 
 }

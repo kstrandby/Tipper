@@ -46,6 +46,7 @@ public class SearchTipActivity extends ActionBarActivity {
 
     public void searchTip(View view) {
         Intent intent = new Intent(this, SearchResultActivity.class);
+        intent.putExtra("source", "SearchTipActivity");
         intent.putExtra("searchType", "Tip");
         startActivity(intent);
     }

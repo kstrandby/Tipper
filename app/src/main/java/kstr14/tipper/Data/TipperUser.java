@@ -1,12 +1,35 @@
 package kstr14.tipper.Data;
 
+import com.parse.ParseClassName;
+import com.parse.ParseObject;
 import com.parse.ParseRelation;
-import com.parse.ParseUser;
 
 /**
  * Created by Kristine on 17-05-2015.
  */
-public class TipperUser extends ParseUser {
+
+@ParseClassName("TipperUser")
+public class TipperUser extends ParseObject {
+
+    public void setUsername(String username) {
+        put("username", username);
+    }
+
+    public String getUsername() {
+        return getString("username");
+    }
+
+    public void setEmail(String email) {
+        put("email", email);
+    }
+
+    public String getEmail() {
+        return getString("email");
+    }
+
+    public void setPassword(String password) {
+        put("password", password);
+    }
 
     public ParseRelation<Group> getGroups() {
         return getRelation("groups");

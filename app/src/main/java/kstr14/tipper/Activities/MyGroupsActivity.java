@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,21 +15,20 @@ import android.widget.TextView;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
-import com.parse.ParseUser;
 
 import java.util.List;
 
 import kstr14.tipper.Adapters.GroupBaseAdapter;
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
-
-// TODO reload list when group has been created
 
 public class MyGroupsActivity extends ActionBarActivity {
 
     public static final int CREATE_GROUP_REQUEST = 2;
 
+    private List<Group> myGroups;
     private ListView listView;
 
     @Override
@@ -40,19 +38,15 @@ public class MyGroupsActivity extends ActionBarActivity {
 
         listView = (ListView) findViewById(R.id.myGroupsListView);
 
-        // fetch the current user's groups
-        TipperUser user = (TipperUser) ParseUser.getCurrentUser();
-        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
-            public void done(List<Group> itemList, ParseException e) {
-                if (e == null) {
-                    GroupBaseAdapter adapter = new GroupBaseAdapter(getApplicationContext(), itemList);
-                    listView.setAdapter(adapter);
-                } else {
-                    Log.d("item", "Error: " + e.getMessage());
-                }
-            }
-        });;
+        TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
 
+        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+            @Override
+            public void done(List<Group> list, ParseException e) {
+                myGroups = list;
+                listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
+            }
+        });
 
         // set click listener for groups in list to move to show group activity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -71,6 +65,22 @@ public class MyGroupsActivity extends ActionBarActivity {
         TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
         msg.setText("You are currently not a member of any groups.");
         listView.setEmptyView(msg);
+    }
+
+    private void updateGroupList() {
+        TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+            @Override
+            public void done(List<Group> list, ParseException e) {
+                if (e == null) {
+                    myGroups = list;
+                    listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
+                } else {
+                    e.printStackTrace();
+                }
+
+            }
+        });
     }
 
 
@@ -112,6 +122,7 @@ public class MyGroupsActivity extends ActionBarActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if(requestCode == CREATE_GROUP_REQUEST) {
             if(resultCode == RESULT_OK) {
+                updateGroupList();
             }
         }
     }

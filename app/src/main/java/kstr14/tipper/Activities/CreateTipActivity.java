@@ -32,9 +32,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.Category;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ParseHelper;
 import kstr14.tipper.R;
 
@@ -115,13 +117,16 @@ public class CreateTipActivity extends ActionBarActivity {
 
         // populate the groupchoice spinner with choices
         List<String> groupArray =  new ArrayList<>();
+        groupArray.add("No group");
         try {
-            for(Group group: ParseHelper.getCurrentUsersGroups()) {
+            TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+            for(Group group: ParseHelper.getUsersGroups(user)) {
                 groupArray.add(group.getName());
             }
         } catch (ParseException e) {
             e.printStackTrace();
         }
+
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 this, R.layout.simple_spinner_item, groupArray);
         adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);;

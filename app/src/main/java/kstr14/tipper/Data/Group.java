@@ -3,7 +3,6 @@ package kstr14.tipper.Data;
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
-import com.parse.ParseUser;
 
 import java.util.UUID;
 
@@ -38,12 +37,12 @@ public class Group extends ParseObject {
         return getBoolean("closed");
     }
 
-    public void setCreator(ParseUser creator) {
+    public void setCreator(TipperUser creator) {
         put("creator", creator);
     }
 
-    public ParseUser getCreator() {
-        return getParseUser("creator");
+    public ParseObject getCreator() {
+        return getParseObject("creator");
     }
 
     public ParseRelation<TipperUser> getUsers() {

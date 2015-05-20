@@ -11,11 +11,13 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import com.parse.ParseUser;
+import com.parse.ParseException;
 
 import kstr14.tipper.Adapters.TipAdapter;
+import kstr14.tipper.Application;
 import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 
@@ -33,6 +35,9 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
+        System.out.println(user.getUsername() + " logged in");
 
         // initialize UI elements
         listView = (ListView) findViewById(R.id.main_lv_tips);
@@ -97,7 +102,12 @@ public class MainActivity extends ActionBarActivity {
             startActivity(intent);
             return true;
         } else if (id == R.id.logout){
-            ParseUser.logOut();
+            try {
+                ((Application)getApplicationContext()).getCurrentUser().unpin();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;

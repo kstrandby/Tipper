@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -18,8 +19,10 @@ import com.parse.ParseQuery;
 import java.util.List;
 
 import kstr14.tipper.Adapters.TipBaseAdapter;
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 public class ShowGroupActivity extends ActionBarActivity {
@@ -71,12 +74,16 @@ public class ShowGroupActivity extends ActionBarActivity {
                     e.printStackTrace();
                 }
             }
-
         });
-
-
     }
 
+    public void leaveGroup(View view) {
+        TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
+        group.removeUser(user);
+        group.saveInBackground();
+        user.removeGroup(group);
+        user.saveInBackground();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -98,6 +105,7 @@ public class ShowGroupActivity extends ActionBarActivity {
         } else if (id == R.id.action_add) {
             Intent intent = new Intent(this, CreateTipActivity.class);
             intent.putExtra("source", "ShowGroupActivity");
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);

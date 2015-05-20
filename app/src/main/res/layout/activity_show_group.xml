@@ -24,11 +24,10 @@
             android:src="@drawable/ic_action_group_big" />
 
         <TextView
-            android:layout_width="333dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/showGroup_tv_description"
-            android:layout_gravity="center_horizontal"
-            android:layout_weight="0.65" />
+            android:layout_gravity="center_horizontal" />
     </LinearLayout>
 
     <ListView

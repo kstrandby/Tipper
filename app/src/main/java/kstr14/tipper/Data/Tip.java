@@ -79,7 +79,7 @@ public class Tip extends ParseObject {
     }
 
     public Date getEndDate() {
-        return getDate("EndDate");
+        return getDate("endDate");
     }
 
     public void setEndDate(Date endDate) {

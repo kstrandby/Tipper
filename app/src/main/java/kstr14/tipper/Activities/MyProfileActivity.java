@@ -6,8 +6,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import com.parse.ParseUser;
-
+import kstr14.tipper.Application;
+import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 
@@ -16,17 +16,21 @@ public class MyProfileActivity extends ActionBarActivity {
     private TextView usernameView;
     private TextView emailView;
 
+    private TipperUser user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_profile);
 
+        user = ((Application)getApplicationContext()).getCurrentUser();
+
         // initialize UI elements
         usernameView = (TextView) findViewById(R.id.myProfile_tv_username);
         emailView = (TextView) findViewById(R.id.myProfile_tv_email);
 
-        usernameView.setText(ParseUser.getCurrentUser().getUsername());
-        emailView.setText(ParseUser.getCurrentUser().getEmail());
+        usernameView.setText(user.getUsername());
+        emailView.setText(user.getEmail());
     }
 
 

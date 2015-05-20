@@ -11,9 +11,9 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.parse.ParseException;
-import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
@@ -78,23 +78,23 @@ public class CreateGroupActivity extends ActionBarActivity {
             } else {
                 group.setClosed(false);
             }
-            // add current user to the group
-            group.addUser((TipperUser) ParseUser.getCurrentUser());
-            group.setCreator(ParseUser.getCurrentUser());
+            final TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
+            group.addUser(user);
+            group.setCreator(user);
             group.setUuidString();
             group.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
                         // and now relate the group to the user as well
-                        ParseUser.getCurrentUser().getRelation("groups").add(group);
-                        ParseUser.getCurrentUser().saveInBackground();
+                        user.addGroup(group);
 
                         // and start intent to MyGroupsActivity
                         Intent intent = new Intent(getApplicationContext(), MyGroupsActivity.class);
                         setResult(RESULT_OK, intent);
                         finish();
                     } else {
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 }

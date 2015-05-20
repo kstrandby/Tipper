@@ -14,6 +14,9 @@ import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+import java.util.Calendar;
+import java.util.Locale;
+
 import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.R;
@@ -75,17 +78,19 @@ public class ShowTipActivity extends ActionBarActivity {
         query.whereEqualTo("uuid", ID);
 
         query.getFirstInBackground(new GetCallback<Tip>() {
-
             @Override
             public void done(Tip object, ParseException e) {
                 if (e == null) {
                     tip = object;
                     String title = tip.getTitle();
                     getSupportActionBar().setTitle(title);
+
                     upvoteView.setText(String.valueOf(tip.getUpvotes()));
                     downvoteView.setText(String.valueOf(tip.getDownvotes()));
                     descriptionView.setText(tip.getDescription());
-                    dateView.setText(tip.getStartDate().toString());
+
+                    String dateText = prettyOutputDates();
+                    dateView.setText(dateText);
                     priceView.setText("$ " + tip.getPrice());
                     //TODO set image and location
                     locationView.setText("Location unknown");
@@ -99,11 +104,44 @@ public class ShowTipActivity extends ActionBarActivity {
                     e.printStackTrace();
                 }
             }
-
         });
+    }
 
+    private String prettyOutputDates() {
+        Calendar start = Calendar.getInstance();
+        start.setTime(tip.getStartDate());
+        Calendar end = Calendar.getInstance();
+        end.setTime(tip.getEndDate());
+        String output = "";
+        if(start.get(Calendar.YEAR) == end.get(Calendar.YEAR)
+                && start.get(Calendar.MONTH) == end.get(Calendar.MONTH)
+                && start.get(Calendar.DAY_OF_MONTH) == end.get(Calendar.DAY_OF_MONTH)) {
 
+            // start and end is the same day
+            output = start.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US) + " "
+                    + String.format("%02d", start.get(Calendar.DAY_OF_MONTH)) + "-"
+                    + String.format("%02d", start.get(Calendar.MONTH) + 1) + "-"
+                    + start.get(Calendar.YEAR) + "\n"
+                    + String.format("%02d", start.get(Calendar.HOUR_OF_DAY)) + ":"
+                    + String.format("%02d", start.get(Calendar.MINUTE)) + "-"
+                    + String.format("%02d", end.get(Calendar.HOUR_OF_DAY)) + ":"
+                    + String.format("%02d", end.get(Calendar.MINUTE));
+        } else {
+            output = start.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US) + " "
+                    + String.format("%02d", start.get(Calendar.DAY_OF_MONTH)) + "-"
+                    + String.format("%02d", start.get(Calendar.MONTH) + 1) + "-"
+                    + start.get(Calendar.YEAR) + " "
+                    + String.format("%02d", start.get(Calendar.HOUR_OF_DAY)) + ":"
+                    + String.format("%02d", start.get(Calendar.MINUTE)) + "\n-"
+                    + end.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US)
+                    + String.format("%02d", end.get(Calendar.DAY_OF_MONTH)) + "-"
+                    + String.format("%02d", end.get(Calendar.MONTH) + 1) + "-"
+                    + end.get(Calendar.YEAR) + " "
+                    + String.format("%02d", end.get(Calendar.HOUR_OF_DAY)) + ":"
+                    + String.format("%02d", end.get(Calendar.MINUTE));
+        }
 
+        return output;
     }
 
 
