@@ -27,11 +27,12 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
+import kstr14.tipper.Adapters.SpinnerGroupAdapter;
 import kstr14.tipper.Application;
 import kstr14.tipper.Data.Category;
 import kstr14.tipper.Data.Group;
@@ -69,11 +70,15 @@ public class CreateTipActivity extends ActionBarActivity {
     private Calendar chosenEndDate;
     private int chosenPrice;
 
+    private HashMap<String, String> groupHashMap;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_tip);
+
+        groupHashMap = new HashMap<>();
 
         // set current date to correct timezone
         TimeZone timeZone = TimeZone.getTimeZone("Australia/Melbourne");
@@ -116,21 +121,14 @@ public class CreateTipActivity extends ActionBarActivity {
         repeatStyle.setAdapter(arrayAdapter);
 
         // populate the groupchoice spinner with choices
-        List<String> groupArray =  new ArrayList<>();
-        groupArray.add("No group");
         try {
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            for(Group group: ParseHelper.getUsersGroups(user)) {
-                groupArray.add(group.getName());
-            }
+            SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(this, android.R.layout.simple_spinner_item, ParseHelper.getUsersGroups(user));
+            groupChoice.setAdapter(adapter); // Set the custom adapter to the spinner
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                this, R.layout.simple_spinner_item, groupArray);
-        adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);;
-        groupChoice.setAdapter(adapter);
 
         // handle price seekbar changes
         priceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -225,13 +223,7 @@ public class CreateTipActivity extends ActionBarActivity {
         } else if (selectedRepeatStyle.equals("Yearly")) {
 
         }
-        String selectedGroup = groupChoice.getSelectedItem().toString();
-        Group group = null;
-        try {
-            group = ParseHelper.getGroup(selectedGroup);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        Group group = (Group) groupChoice.getSelectedItem();
 
         final Tip tip = new Tip();
         String category = null;

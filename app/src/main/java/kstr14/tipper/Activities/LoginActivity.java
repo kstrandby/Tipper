@@ -14,9 +14,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
@@ -56,6 +58,23 @@ public class LoginActivity extends ActionBarActivity {
         getSupportActionBar().hide();
 
         app = ((Application)getApplicationContext());
+
+        // check for cached user, and go directly to MainActivity if found
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("TipperUser");
+        query.fromLocalDatastore().getFirstInBackground(new GetCallback<ParseObject>() {
+            @Override
+            public void done(ParseObject parseObject, ParseException e) {
+                if(parseObject != null) {
+                    TipperUser user = (TipperUser) parseObject;
+                    System.out.println("Found cached user: " + user.getUsername());
+                    app.setCurrentUser(user);
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    System.out.println("No cached user found.");
+                }
+            }
+        });
 
         // otherwise set fragment to the default login screen
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
@@ -108,10 +127,9 @@ public class LoginActivity extends ActionBarActivity {
             @Override
             public void done(List<TipperUser> list, ParseException e) {
                 if (!list.isEmpty()) {
-                    System.out.println(list.get(0));
                     TipperUser user = list.get(0);
                     app.setCurrentUser(user);
-
+                    user.pinInBackground();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                 } else {
@@ -148,10 +166,12 @@ public class LoginActivity extends ActionBarActivity {
             user.setUsername(username);
             user.setPassword(password1);
             user.setEmail(email);
+            user.setUuidString();
             user.saveInBackground(new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     app.setCurrentUser(user);
+                    user.pinInBackground();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                 }

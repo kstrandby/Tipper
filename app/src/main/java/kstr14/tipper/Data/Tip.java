@@ -105,6 +105,14 @@ public class Tip extends ParseObject {
         saveInBackground();
     }
 
+    public void setGroup(ParseObject group) {
+        put("group", group);
+    }
+
+    public ParseObject getGroup() {
+        return getParseObject("group");
+    }
+
     public void removeCategory(Category category) {
         getCategoriesRelation().remove(category);
         saveInBackground();

@@ -59,6 +59,7 @@ public class ShowGroupActivity extends ActionBarActivity {
                     getSupportActionBar().setTitle(group.getName());
                     descriptionView.setText(group.getDescription());
 
+
                     // fetch tips of group and set up adapter and listview
                     group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
                         @Override
@@ -67,6 +68,8 @@ public class ShowGroupActivity extends ActionBarActivity {
                             listView.setAdapter(adapter);
                         }
                     });
+
+
 
                             //TODO set image
 
@@ -102,12 +105,22 @@ public class ShowGroupActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        } else if (id == R.id.action_add) {
-            Intent intent = new Intent(this, CreateTipActivity.class);
+        } else if (id == R.id.action_add_tip_to_group) {
+            System.out.println("Starting CreateTipActivity");
+            Intent intent = new Intent(ShowGroupActivity.this, CreateTipActivity.class);
             intent.putExtra("source", "ShowGroupActivity");
-            startActivity(intent);
+            startActivityForResult(intent, MainActivity.CREATE_TIP_REQUEST);
+            return true;
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if(requestCode == MainActivity.CREATE_TIP_REQUEST) {
+            if(resultCode == RESULT_OK) {
+                // reload tip list
+            }
+        }
     }
 }

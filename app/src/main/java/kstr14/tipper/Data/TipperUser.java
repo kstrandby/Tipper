@@ -4,6 +4,8 @@ import com.parse.ParseClassName;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
 
+import java.util.UUID;
+
 /**
  * Created by Kristine on 17-05-2015.
  */
@@ -43,6 +45,15 @@ public class TipperUser extends ParseObject {
     public void removeGroup(Group group) {
         getGroups().remove(group);
         saveInBackground();
+    }
+
+    public void setUuidString() {
+        UUID uuid = UUID.randomUUID();
+        put("uuid", uuid.toString());
+    }
+
+    public String getUuidString() {
+        return getString("uuid");
     }
 
 
