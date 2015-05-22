@@ -33,6 +33,10 @@ public class TipperUser extends ParseObject {
         put("password", password);
     }
 
+    public String getPassword() {
+        return getString("password");
+    }
+
     public ParseRelation<Group> getGroups() {
         return getRelation("groups");
     }

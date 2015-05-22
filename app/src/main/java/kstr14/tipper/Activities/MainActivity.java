@@ -4,16 +4,23 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
+import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseQuery;
 
-import kstr14.tipper.Adapters.TipAdapter;
+import java.util.List;
+
+import kstr14.tipper.Adapters.TipBaseAdapter;
 import kstr14.tipper.Application;
 import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
@@ -23,10 +30,14 @@ import kstr14.tipper.R;
 
 public class MainActivity extends ActionBarActivity {
 
+    private static final String TAG = "MainActivity";
     public static final int CREATE_TIP_REQUEST = 1;
 
+    private TipperUser user;
+
     private ListView listView;
-    private TipAdapter adapter;
+    private List<Tip> tips;
+    private Adapter adapter;
     private ImageButton foodButton;
     private ImageButton drinksButton;
     private ImageButton otherButton;
@@ -36,18 +47,12 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
-        System.out.println(user.getUsername() + " logged in");
-
         // initialize UI elements
         listView = (ListView) findViewById(R.id.main_lv_tips);
         foodButton = (ImageButton) findViewById(R.id.main_ib_food);
         drinksButton = (ImageButton) findViewById(R.id.main_ib_drinks);
         otherButton = (ImageButton) findViewById(R.id.main_ib_other);
 
-        // set list adapter
-        adapter = new TipAdapter(this);
-        listView.setAdapter(adapter);
 
         // set images for imageButtons
         Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
@@ -56,6 +61,13 @@ public class MainActivity extends ActionBarActivity {
         drinksButton.setImageBitmap(img);
         img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
         otherButton.setImageBitmap(img);
+
+        updateTipList();
+
+        user = ((Application)getApplicationContext()).getCurrentUser();
+        if(user != null) {
+            Log.d(TAG, user.getUsername() + " logged in");
+        }
 
         // set click listener for tips in list to move to show tip activity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -68,6 +80,12 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateTipList();
     }
 
 
@@ -95,6 +113,7 @@ public class MainActivity extends ActionBarActivity {
             return true;
         } else if (id == R.id.action_add) {
             Intent intent = new Intent(this, CreateTipActivity.class);
+            intent.putExtra("source", "MainActivity");
             startActivityForResult(intent, CREATE_TIP_REQUEST);
             return true;
         } else if (id == R.id.action_search) {
@@ -115,10 +134,23 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
+    // initialize the adapter for the ListView
+    // only public tips is shown
     private void updateTipList() {
-        adapter.loadObjects();
-        listView.setAdapter(adapter);
+        ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
+        query.whereEqualTo("private", false);
+        query.findInBackground(new FindCallback<Tip>() {
+            @Override
+            public void done(List<Tip> list, ParseException e) {
+                if(list != null && !list.isEmpty()) {
+                    tips = list;
+                    adapter = new TipBaseAdapter(getApplicationContext(), tips);
+                    listView.setAdapter((ListAdapter) adapter);
+                } else {
+                    Log.d(TAG, "Did not find any public tips");
+                }
+            }
+        });
     }
 
     @Override

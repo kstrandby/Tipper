@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -28,7 +27,6 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -46,6 +44,8 @@ import kstr14.tipper.R;
 
 public class CreateTipActivity extends ActionBarActivity {
 
+    private final static String TAG = "CreateTipActivity";
+
     private EditText titleInput;
     private EditText descriptionInput;
     private CheckBox foodCheckBox;
@@ -59,7 +59,6 @@ public class CreateTipActivity extends ActionBarActivity {
     private TextView startTimeView;
     private TextView endDateView;
     private TextView endTimeView;
-    private Button createButton;
     private DatePickerDialog datePicker;
     private TimePickerDialog timePicker;
     private Spinner groupChoice;
@@ -70,15 +69,11 @@ public class CreateTipActivity extends ActionBarActivity {
     private Calendar chosenEndDate;
     private int chosenPrice;
 
-    private HashMap<String, String> groupHashMap;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_tip);
-
-        groupHashMap = new HashMap<>();
 
         // set current date to correct timezone
         TimeZone timeZone = TimeZone.getTimeZone("Australia/Melbourne");
@@ -100,7 +95,6 @@ public class CreateTipActivity extends ActionBarActivity {
         startTimeView = (TextView) findViewById(R.id.createTip_tv_startTime);
         endDateView = (TextView) findViewById(R.id.createTip_tv_endDate);
         endTimeView = (TextView) findViewById(R.id.createTip_tv_endTime);
-        createButton = (Button) findViewById(R.id.createTip_b_create);
         groupChoice = (Spinner) findViewById(R.id.createTip_s_groupChoice);
         repeatStyle = (Spinner) findViewById(R.id.createTip_s_repeatStyle);
 
@@ -108,7 +102,7 @@ public class CreateTipActivity extends ActionBarActivity {
         titleInput.setMaxLines(1);
         descriptionInput.setMaxLines(1);
 
-        // set todays date as default date on start and end date textviews
+        // set today's date as default date on start and end date TextViews
         updateDateView(current, startDateView);
         updateDateView(current, endDateView);
         updateTimeView(current, startTimeView);
@@ -120,17 +114,50 @@ public class CreateTipActivity extends ActionBarActivity {
         arrayAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
         repeatStyle.setAdapter(arrayAdapter);
 
-        // populate the groupchoice spinner with choices
-        try {
+        // if source intent was ShowGroupActivity, the only group in the list should be that group
+        String source = getIntent().getExtras().getString("source");
+        if(source != null && source.equals("ShowGroupActivity")) {
+            String groupID = getIntent().getExtras().getString("groupID");
+            if(groupID != null) {
+                ParseQuery<Group> query = ParseQuery.getQuery("Group");
+                query.whereEqualTo("uuid", groupID);
+                query.findInBackground(new FindCallback<Group>() {
+                    @Override
+                    public void done(List<Group> list, ParseException e) {
+                        if(e == null) {
+                            if(!list.isEmpty()) {
+                                SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(
+                                        getApplicationContext(), R.layout.simple_spinner_item, list);
+                                adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+                                groupChoice.setAdapter(adapter);
+                            } else {
+                                Log.d(TAG, "Intent source is ShowGroupActivity but could not fetch group by groupID");
+                            }
+                        } else {
+                            Log.d(TAG, "Parse error: \n" + e.getMessage());
+                        }
+                    }
+                });
+            } else {
+                Log.d(TAG, "Intent source is ShowGroupActivity but groupID is null");
+            }
+        } else if(source != null && source.equals("MainActivity")){
+
+            // otherwise the spinner will contain all the groups the current user is member of
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(this, android.R.layout.simple_spinner_item, ParseHelper.getUsersGroups(user));
-            groupChoice.setAdapter(adapter); // Set the custom adapter to the spinner
-        } catch (ParseException e) {
-            e.printStackTrace();
+            SpinnerGroupAdapter adapter = null;
+            try {
+                adapter = new SpinnerGroupAdapter(this, R.layout.simple_spinner_item, ParseHelper.getUsersGroups(user));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+            groupChoice.setAdapter(adapter);
+        } else {
+            Log.d(TAG, "No source provided!");
         }
 
-
-        // handle price seekbar changes
+        // handle price SeekBar changes
         priceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -139,12 +166,10 @@ public class CreateTipActivity extends ActionBarActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
         // handle start and end date clicks
@@ -163,10 +188,22 @@ public class CreateTipActivity extends ActionBarActivity {
         });
     }
 
+    /**
+     * Presents a DatePickerDialog to the user, which in turn presents a TimePickerDialog
+     * @param calendar the Calendar object to hold the chosen values
+     * @param dateView the TextView where the chosen date is set
+     * @param timeView the TextView where the chosen time is set
+     */
     public void showDateTimePicker(final Calendar calendar, final TextView dateView, final TextView timeView) {
         showDatePickerDialog(calendar, dateView, timeView);
     }
 
+    /**
+     * Presents a DatePickerDialog and sets the chosen values to the given TextView
+     * @param calendar the Calendar object to hold the chosen values
+     * @param dateView the TextView where the chosen date is set
+     * @param timeView the TextView where the chosen time is set
+     */
     public void showDatePickerDialog(final Calendar calendar, final TextView dateView, final TextView timeView) {
         datePicker = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -179,6 +216,11 @@ public class CreateTipActivity extends ActionBarActivity {
         datePicker.show();
     }
 
+    /**
+     * Presents a TimePickerDialog and sets the chosen values to the given TextView
+     * @param calendar the Calendar object to hold the chosen values
+     * @param timeView the TextView where the chosen time is set
+     */
     public void showTimePickerDialog(final Calendar calendar, final TextView timeView) {
         timePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
             @Override
@@ -191,13 +233,23 @@ public class CreateTipActivity extends ActionBarActivity {
         timePicker.show();
     }
 
+    /**
+     * Sets the given TextView to a nice String representation of the date in the given Calendar
+     * @param calendar the Calendar holding the date to be set
+     * @param dateView the TextView to be set
+     */
     public void updateDateView(Calendar calendar, TextView dateView) {
         dateView.setText(String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)) + "-"
                 + String.format("%02d", calendar.get(Calendar.MONTH) + 1) + "-"
                 + calendar.get(Calendar.YEAR));
     }
 
-    public void updateTimeView(Calendar calendar, TextView timeView){
+    /**
+     * Sets the given TextView to a nice String representation of the time in the given Calendar
+     * @param calendar the Calendar holding the time to be set
+     * @param timeView the TextView to be set
+     */
+    public void updateTimeView(Calendar calendar, TextView timeView) {
         timeView.setText(String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY)) + ":"
                 + String.format("%02d", calendar.get(Calendar.MINUTE)));
     }
@@ -206,6 +258,7 @@ public class CreateTipActivity extends ActionBarActivity {
      * method called when CREATE button clicked
      */
     public void createTip(View view) {
+        final Tip tip = new Tip();
         // fetch values
         String title = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
@@ -223,11 +276,16 @@ public class CreateTipActivity extends ActionBarActivity {
         } else if (selectedRepeatStyle.equals("Yearly")) {
 
         }
+
+        // set group and set tip to private is chosen group is closed
         Group group = (Group) groupChoice.getSelectedItem();
+        if(group.isClosed()) {
+            tip.setPrivate(true);
+        } else {
+            tip.setPrivate(false);
+        }
 
-        final Tip tip = new Tip();
         String category = null;
-
         // input validation
         if(!foodCheckBox.isChecked() && !drinksCheckBox.isChecked() && !otherCheckBox.isChecked()) {
             Toast.makeText(getBaseContext(), "Please choose a category.", Toast.LENGTH_LONG).show();
@@ -331,8 +389,6 @@ public class CreateTipActivity extends ActionBarActivity {
         if(title.length() != 0) return true;
         else return false;
     }
-
-
 
 
     @Override

@@ -86,6 +86,14 @@ public class Tip extends ParseObject {
         put("endDate", endDate);
     }
 
+    public void setPrivate(boolean value) {
+        put("private", value);
+    }
+
+    public boolean isPrivate() {
+        return getBoolean("private");
+    }
+
 
     public void setUuidString() {
         UUID uuid = UUID.randomUUID();

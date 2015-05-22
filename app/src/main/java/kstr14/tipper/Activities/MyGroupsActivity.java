@@ -4,12 +4,12 @@ import android.annotation.TargetApi;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,7 +40,6 @@ public class MyGroupsActivity extends ActionBarActivity {
 
     private List<String> allGroups;
     private Menu menu;
-    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,13 +87,16 @@ public class MyGroupsActivity extends ActionBarActivity {
                 }
             }
         });
+    }
 
-
-
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateGroupList();
     }
 
     private void updateGroupList() {
+        // update current user's group list
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
         user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
             @Override
@@ -108,6 +110,24 @@ public class MyGroupsActivity extends ActionBarActivity {
 
             }
         });
+
+        // update all group list (to update searchview suggestions)
+        ParseQuery<Group> query = ParseQuery.getQuery("Group");
+        query.findInBackground(new FindCallback<Group>() {
+            @Override
+            public void done(List<Group> list, ParseException e) {
+                if (e == null) {
+                    List<String> newAllGroups = new ArrayList<String>();
+                    for(Group group : list) {
+                        newAllGroups.add(group.getName());
+                    }
+                    allGroups = newAllGroups;
+                } else {
+                    Log.d("item", "Error: " + e.getMessage());
+                }
+            }
+        });
+
     }
 
 
@@ -122,15 +142,17 @@ public class MyGroupsActivity extends ActionBarActivity {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 
             SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-            searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
             searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
-
 
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
                 @Override
                 public boolean onQueryTextSubmit(String s) {
-                    System.out.println("onQueryTextSubmit " + s);
+                    Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
+                    intent.putExtra("source", "MyGroupsActivity");
+                    intent.putExtra("query", s);
+                    startActivity(intent);
                     return true;
                 }
 
@@ -138,49 +160,29 @@ public class MyGroupsActivity extends ActionBarActivity {
                 public boolean onQueryTextChange(String query) {
                     loadHistory(query);
                     return true;
-
-                }
-
-            });
-
-            searchView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    System.out.println("Clicked");
                 }
             });
+
 
             searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+
                 @Override
                 public boolean onSuggestionSelect(int i) {
-                    System.out.println("onSuggestionSelect");
-                    Cursor cursor = (Cursor) searchView.getSuggestionsAdapter().getItem(i);
-                    String feedName = cursor.getString(1);
-                    searchView.setQuery(feedName, false);
-                    searchView.clearFocus();
+                    System.out.println("Selected " + i);
                     return true;
                 }
 
                 @Override
                 public boolean onSuggestionClick(int i) {
-                    System.out.println("onSuggestionClick");
-                    Cursor cursor = (Cursor) searchView.getSuggestionsAdapter().getItem(i);
-                    String feedName = cursor.getString(4);
-                    System.out.println(feedName + " clicked ");
-                    searchView.setQuery(feedName, false);
-                    searchView.clearFocus();
+                    System.out.println("Clicked " + i);
                     return true;
                 }
-
             });
-
-
-
         }
-
         return true;
     }
-    // History
+
+
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void loadHistory(String query) {
 
@@ -202,12 +204,10 @@ public class MyGroupsActivity extends ActionBarActivity {
                     result.add(allGroups.get(i));
                 }
             }
-
-
+            SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
             searchView.setSuggestionsAdapter(new SearchViewAdapter(this, cursor, result));
-
-
-
         }
     }
 

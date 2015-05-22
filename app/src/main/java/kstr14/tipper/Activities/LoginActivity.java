@@ -14,14 +14,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
-import com.parse.GetCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-import com.parse.SaveCallback;
+
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,25 +61,25 @@ public class LoginActivity extends ActionBarActivity {
 
         // check for cached user, and go directly to MainActivity if found
         ParseQuery<ParseObject> query = ParseQuery.getQuery("TipperUser");
-        query.fromLocalDatastore().getFirstInBackground(new GetCallback<ParseObject>() {
-            @Override
-            public void done(ParseObject parseObject, ParseException e) {
-                if(parseObject != null) {
-                    TipperUser user = (TipperUser) parseObject;
-                    System.out.println("Found cached user: " + user.getUsername());
-                    app.setCurrentUser(user);
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    System.out.println("No cached user found.");
-                }
+        try {
+            TipperUser user = (TipperUser) query.fromLocalDatastore().getFirst();
+            if (user != null) {
+                System.out.println("Found cached user: " + user.getUsername());
+                app.setCurrentUser(user);
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            } else {
+                System.out.println("No cached user found.");
             }
-        });
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         // otherwise set fragment to the default login screen
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, defaultLoginFragment).commit();
+                .add(R.id.LoginActivity_fragment_container, defaultLoginFragment).commit();
     }
 
     // Required for making Facebook login work
@@ -101,7 +101,7 @@ public class LoginActivity extends ActionBarActivity {
 
         // Replace the default login fragment with the sign up fragment,
         // and add the transaction to the back stack so the user can navigate back
-        fragmentTransaction.replace(R.id.fragment_container, signUpFragment);
+        fragmentTransaction.replace(R.id.LoginActivity_fragment_container, signUpFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
@@ -117,23 +117,26 @@ public class LoginActivity extends ActionBarActivity {
         passwordDefaultLogin = (EditText) findViewById(R.id.passwordDefaultLoginFragment);
 
         // fetch input and attempt login
-        String username = usernameDefaultLogin.getText().toString();
-        String password = passwordDefaultLogin.getText().toString();
+        final String username = usernameDefaultLogin.getText().toString();
+        final String password = passwordDefaultLogin.getText().toString();
 
         ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
         query.whereEqualTo("username", username);
-        query.whereEqualTo("password", password);
         query.findInBackground(new FindCallback<TipperUser>() {
             @Override
             public void done(List<TipperUser> list, ParseException e) {
                 if (!list.isEmpty()) {
                     TipperUser user = list.get(0);
-                    app.setCurrentUser(user);
-                    user.pinInBackground();
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
+                    if (BCrypt.checkpw(password, user.getPassword())) {
+                        app.setCurrentUser(user);
+                        user.pinInBackground();
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Login failed.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -156,28 +159,39 @@ public class LoginActivity extends ActionBarActivity {
         String password1 = passwordSignup.getText().toString();
         String password2 = reenterPasswordSignup.getText().toString();
 
-        // validate passwords and email
-        if(!validatePassword(password1, password2)) {
+        // validation
+        if(username.length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please enter a username.", Toast.LENGTH_SHORT).show();
+        } else if(password1.length() == 0) {
+            Toast.makeText(getApplicationContext(), "Please enter a password.", Toast.LENGTH_SHORT).show();
+        } else if(!validatePassword(password1, password2)) {
             Toast.makeText(getApplicationContext(), "Passwords do not match, try again.", Toast.LENGTH_SHORT).show();
         } else if (!validateEmail(email)) {
             Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
-        } else {
-            final TipperUser user = new TipperUser();
-            user.setUsername(username);
-            user.setPassword(password1);
-            user.setEmail(email);
-            user.setUuidString();
-            user.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    app.setCurrentUser(user);
-                    user.pinInBackground();
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                }
-            });
+        } else try {
+            if (!usernameAvailable(username)) {
+                Toast.makeText(getApplicationContext(), "Sorry, username already taken.", Toast.LENGTH_SHORT).show();
+            } else {
+                final TipperUser user = new TipperUser();
+                user.setUsername(username);
+
+                // hash password with salt
+                String hashed = BCrypt.hashpw(password1, BCrypt.gensalt());
+                user.setPassword(hashed);
+
+                user.setEmail(email);
+                user.setUuidString();
+                user.save();
+                app.setCurrentUser(user);
+                user.pinInBackground();
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }
+
 
     public void facebookLoginPressed(View view) {
         List<String> permissions = new ArrayList<String>();
@@ -226,6 +240,20 @@ public class LoginActivity extends ActionBarActivity {
             result = false;
         }
         return result;
+    }
+
+    /**
+     * Checks if a username is available
+     * @param username
+     * @return
+     */
+    private boolean usernameAvailable(String username) throws ParseException {
+        ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+        query.whereEqualTo("username", username);
+        List<TipperUser> result = query.find();
+        if(result.isEmpty()) {
+            return true;
+        } else return false;
     }
 
     @Override

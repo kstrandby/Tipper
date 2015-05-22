@@ -6,8 +6,7 @@ import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ import kstr14.tipper.R;
 public class SearchViewAdapter extends CursorAdapter {
 
     private List<String> items;
-    private AutoCompleteTextView text;
+    private TextView text;
 
     public SearchViewAdapter(Context context, Cursor cursor, List<String> items) {
         super(context, cursor, false);
@@ -30,16 +29,16 @@ public class SearchViewAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         text.setText(items.get(cursor.getPosition()));
+        text.setFocusable(true);
+        text.setClickable(true);
+
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.search_item, parent, false);
-        ArrayAdapter adapter = new ArrayAdapter(context, android.R.layout.simple_list_item_1, items);
-        text = (AutoCompleteTextView) view.findViewById(R.id.autoCompleteTextView);
-        text.setThreshold(1);
-        text.setAdapter(adapter);
+        text = (TextView) view.findViewById(R.id.textView);
         return view;
     }
 }

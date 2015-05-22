@@ -15,10 +15,15 @@ public class Group extends ParseObject {
 
     public void setName(String name) {
         put("name", name);
+        put("lowerCaseName", name.toLowerCase());
     }
 
     public String getName() {
         return getString("name");
+    }
+
+    public String getLowerCaseName() {
+        return getString("lowerCaseName");
     }
 
     public void setDescription(String description) {
