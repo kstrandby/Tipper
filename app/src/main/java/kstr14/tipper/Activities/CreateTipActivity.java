@@ -442,6 +442,9 @@ public class CreateTipActivity extends ActionBarActivity {
 
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toArray(new Parcelable[intents.size()]));
             startActivityForResult(chooserIntent, CAPTURE_IMAGE_REQUEST);
+        } else if (id == R.id.location) {
+            Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }

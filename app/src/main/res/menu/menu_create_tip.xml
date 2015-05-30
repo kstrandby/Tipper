@@ -6,6 +6,10 @@
         android:title="Camera"
         android:icon="@drawable/ic_action_camera"
         app:showAsAction="always"></item>
+    <item android:id="@+id/location"
+        android:title="Location"
+        android:icon="@drawable/ic_action_place"
+        app:showAsAction="always"></item>
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:orderInCategory="100"
