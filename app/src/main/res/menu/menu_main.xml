@@ -19,8 +19,11 @@
         android:title="My Profile"/>
     <item android:id="@+id/logout"
         android:title="Log out"/>
+    <item android:id="@+id/favourites"
+        android:title="Favourites"/>
 
-    <item android:id="@+id/action_add"
+
+    <item android:id="@+id/action_add_tip"
         android:title="Add"
         android:icon="@drawable/ic_action_new"
         app:showAsAction="always"/>

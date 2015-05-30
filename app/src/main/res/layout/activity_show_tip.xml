@@ -14,20 +14,23 @@
         android:layout_alignParentTop="true"
         android:weightSum="1">
 
-        <ImageView
-            android:layout_width="150dp"
+        <com.parse.ParseImageView
+            android:layout_width="fill_parent"
             android:layout_height="150dp"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
             android:id="@+id/showTip_iv_tipImage"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="20dp"/>
+            android:layout_margin="20dp"
+            android:layout_weight="0.28" />
 
         <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="229dp"
-            android:layout_height="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:weightSum="1"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:id="@+id/icons">
 
             <ImageButton
@@ -36,7 +39,8 @@
                 android:id="@+id/showTip_ib_upvote"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:background="@null"/>
+                android:background="@null"
+                android:onClick="upvoteClicked" />
 
             <TextView
                 style="@style/text"
@@ -55,7 +59,8 @@
                 android:id="@+id/showTip_ib_downvote"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
-                android:background="@null"/>
+                android:background="@null"
+                android:onClick="downvoteClicked" />
 
             <TextView
                 style="@style/text"
@@ -74,7 +79,8 @@
                 android:id="@+id/showTip_ib_favourites"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="5dp"
-                android:background="@null"/>
+                android:background="@null"
+                android:onClick="favouritesButtonClicked" />
 
         </LinearLayout>
 
@@ -84,7 +90,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/showTip_tv_description"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="15dp"
             android:layout_weight="0.20" />
 
         <LinearLayout

@@ -3,7 +3,6 @@ package kstr14.tipper.Data;
 import com.parse.ParseClassName;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
-import com.parse.ParseRelation;
 
 import java.util.Date;
 import java.util.UUID;
@@ -34,8 +33,13 @@ public class Tip extends ParseObject {
         return getString("title");
     }
 
+    public String getLowerCaseTitle() {
+        return getString("lowerCaseTitle");
+    }
+
     public void setTitle(String title) {
         put("title", title);
+        put("lowerCaseTitle", title.toLowerCase());
     }
 
     public String getDescription() {
@@ -104,13 +108,12 @@ public class Tip extends ParseObject {
         return getString("uuid");
     }
 
-    public ParseRelation<Category> getCategoriesRelation() {
-        return getRelation("categories");
+    public String getCategory() {
+        return getString("category");
     }
 
-    public void addCategory(Category category) {
-        getCategoriesRelation().add(category);
-        saveInBackground();
+    public void setCategory(String category) {
+        put("category", category);
     }
 
     public void setGroup(ParseObject group) {
@@ -121,16 +124,19 @@ public class Tip extends ParseObject {
         return getParseObject("group");
     }
 
-    public void removeCategory(Category category) {
-        getCategoriesRelation().remove(category);
-        saveInBackground();
-    }
-
     public ParseFile getImage() {
         return getParseFile("image");
     }
 
     public void setImage(ParseFile file) {
         put("image", file);
+    }
+
+    public ParseObject getCreator() {
+        return getParseObject("creator");
+    }
+
+    public void setCreator(ParseObject user) {
+        put("creator", user);
     }
 }

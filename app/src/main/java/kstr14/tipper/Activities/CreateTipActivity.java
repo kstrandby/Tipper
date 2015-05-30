@@ -3,17 +3,22 @@ package kstr14.tipper.Activities;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -22,35 +27,37 @@ import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
-import com.parse.ParseObject;
+import com.parse.ParseFile;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
 import kstr14.tipper.Adapters.SpinnerGroupAdapter;
 import kstr14.tipper.Application;
-import kstr14.tipper.Data.Category;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.ParseHelper;
 import kstr14.tipper.R;
 
-// TODO: check source of Intent and if source is ShowGroupActivity, set the owner group of the tip to the group
-// also check if its a private group - and thereby a private tip
-
 public class CreateTipActivity extends ActionBarActivity {
 
-    private final static String TAG = "CreateTipActivity";
+    private final static String ACTIVITY_ID = "CreateTipActivity";
+
+    private static final int CAPTURE_IMAGE_REQUEST = 100;
 
     private EditText titleInput;
     private EditText descriptionInput;
-    private CheckBox foodCheckBox;
-    private CheckBox drinksCheckBox;
-    private CheckBox otherCheckBox;
+    private RadioButton foodRadioButton;
+    private RadioButton drinksRadioButton;
+    private RadioButton otherRadioButton;
     private SeekBar priceSeekBar;
     private TextView priceView;
     private LinearLayout startDateLayout;
@@ -69,11 +76,16 @@ public class CreateTipActivity extends ActionBarActivity {
     private Calendar chosenEndDate;
     private int chosenPrice;
 
+    private String sourceActivity;
+    private Tip tip;
+    private Uri outputFileUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_tip);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // set current date to correct timezone
         TimeZone timeZone = TimeZone.getTimeZone("Australia/Melbourne");
@@ -84,9 +96,9 @@ public class CreateTipActivity extends ActionBarActivity {
         // initialize all UI elements
         titleInput = (EditText) findViewById(R.id.createTip_ed_title);
         descriptionInput = (EditText) findViewById(R.id.createTip_ed_description);
-        foodCheckBox = (CheckBox) findViewById(R.id.createTip_cb_foodCategory);
-        drinksCheckBox = (CheckBox) findViewById(R.id.createTip_cb_drinksCategory);
-        otherCheckBox = (CheckBox) findViewById(R.id.createTip_cb_otherCategory);
+        foodRadioButton = (RadioButton) findViewById(R.id.createTip_rb_food);
+        drinksRadioButton = (RadioButton) findViewById(R.id.createTip_rb_drinks);
+        otherRadioButton = (RadioButton) findViewById(R.id.createTip_rb_other);
         priceSeekBar = (SeekBar) findViewById(R.id.createTip_sb_price);
         priceView = (TextView) findViewById(R.id.createTip_tv_price);
         startDateLayout = (LinearLayout) findViewById(R.id.createTip_ll_startDate);
@@ -114,9 +126,9 @@ public class CreateTipActivity extends ActionBarActivity {
         arrayAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
         repeatStyle.setAdapter(arrayAdapter);
 
-        // if source intent was ShowGroupActivity, the only group in the list should be that group
-        String source = getIntent().getExtras().getString("source");
-        if(source != null && source.equals("ShowGroupActivity")) {
+        // if sourceActivity was ShowGroupActivity, the only group in the list should be that group
+        sourceActivity = getIntent().getExtras().getString("source");
+        if(sourceActivity != null && sourceActivity.equals("ShowGroupActivity")) {
             String groupID = getIntent().getExtras().getString("groupID");
             if(groupID != null) {
                 ParseQuery<Group> query = ParseQuery.getQuery("Group");
@@ -131,30 +143,35 @@ public class CreateTipActivity extends ActionBarActivity {
                                 adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
                                 groupChoice.setAdapter(adapter);
                             } else {
-                                Log.d(TAG, "Intent source is ShowGroupActivity but could not fetch group by groupID");
+                                Log.d(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but could not fetch group by groupID");
                             }
                         } else {
-                            Log.d(TAG, "Parse error: \n" + e.getMessage());
+                            Log.d(ACTIVITY_ID, "Parse error: \n" + e.getMessage());
                         }
                     }
                 });
             } else {
-                Log.d(TAG, "Intent source is ShowGroupActivity but groupID is null");
+                Log.d(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but groupID is null");
             }
-        } else if(source != null && source.equals("MainActivity")){
+        } else if(sourceActivity != null && sourceActivity.equals("MainActivity")){
 
             // otherwise the spinner will contain all the groups the current user is member of
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
             SpinnerGroupAdapter adapter = null;
             try {
-                adapter = new SpinnerGroupAdapter(this, R.layout.simple_spinner_item, ParseHelper.getUsersGroups(user));
+                List<Group> groups = ParseHelper.getUsersGroups(user);
+                // add a dummy group as well, for being able to create a tip that has no group
+                ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
+                Group dummyGroup = dummyQuery.whereEqualTo("uuid", "dummy").getFirst();
+                if(dummyGroup != null) groups.add(dummyGroup);
+                adapter = new SpinnerGroupAdapter(this, R.layout.simple_spinner_item, groups);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
             adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
             groupChoice.setAdapter(adapter);
         } else {
-            Log.d(TAG, "No source provided!");
+            Log.d(ACTIVITY_ID, "No sourceActivity provided!");
         }
 
         // handle price SeekBar changes
@@ -258,7 +275,9 @@ public class CreateTipActivity extends ActionBarActivity {
      * method called when CREATE button clicked
      */
     public void createTip(View view) {
-        final Tip tip = new Tip();
+        if(tip == null) {
+            tip = new Tip();
+        }
         // fetch values
         String title = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
@@ -278,16 +297,22 @@ public class CreateTipActivity extends ActionBarActivity {
         }
 
         // set group and set tip to private is chosen group is closed
-        Group group = (Group) groupChoice.getSelectedItem();
-        if(group.isClosed()) {
-            tip.setPrivate(true);
-        } else {
-            tip.setPrivate(false);
+        final Group group = (Group) groupChoice.getSelectedItem();
+        if(group != null) {
+            if(!group.getUuidString().equals("dummy")) {
+                if(group.isClosed()) {
+                    tip.setPrivate(true);
+                } else {
+                    tip.setPrivate(false);
+                }
+                tip.setGroup(group);
+            } else {
+                tip.setPrivate(false);
+            }
         }
 
-        String category = null;
         // input validation
-        if(!foodCheckBox.isChecked() && !drinksCheckBox.isChecked() && !otherCheckBox.isChecked()) {
+        if(!foodRadioButton.isChecked() && !drinksRadioButton.isChecked() && !otherRadioButton.isChecked()) {
             Toast.makeText(getBaseContext(), "Please choose a category.", Toast.LENGTH_LONG).show();
         } else if(!validateTitle(title)) {
             Toast.makeText(getBaseContext(), "Please input a title.", Toast.LENGTH_SHORT).show();
@@ -296,49 +321,9 @@ public class CreateTipActivity extends ActionBarActivity {
         } else if (chosenEndDate.before(chosenStartDate)) {
             Toast.makeText(getBaseContext(), "End date cannot be before start date.", Toast.LENGTH_SHORT).show();
         } else {
-            if (foodCheckBox.isChecked()) {
-                category = "food";
-                ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", category);
-                query.findInBackground(new FindCallback<ParseObject>() {
-                    public void done(List<ParseObject> itemList, ParseException e) {
-                        if (e == null) {
-                            tip.addCategory((Category) itemList.get(0));
-                        } else {
-                            Log.d("item", "Error: " + e.getMessage());
-                        }
-                    }
-                });
-            }
-
-            if (drinksCheckBox.isChecked()) {
-                category = "drinks";
-                ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", category);
-                query.findInBackground(new FindCallback<ParseObject>() {
-                    public void done(List<ParseObject> itemList, ParseException e) {
-                        if (e == null) {
-                            tip.addCategory((Category) itemList.get(0));
-                        } else {
-                            Log.d("item", "Error: " + e.getMessage());
-                        }
-                    }
-                });
-            }
-            if (otherCheckBox.isChecked()) {
-                category = "other";
-                ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                query.whereEqualTo("name", category);
-                query.findInBackground(new FindCallback<ParseObject>() {
-                    public void done(List<ParseObject> itemList, ParseException e) {
-                        if (e == null) {
-                            tip.addCategory((Category) itemList.get(0));
-                        } else {
-                            Log.d("item", "Error: " + e.getMessage());
-                        }
-                    }
-                });
-            }
+            if (foodRadioButton.isChecked()) tip.setCategory("Food");
+            else if (drinksRadioButton.isChecked()) tip.setCategory("Drinks");
+            else if (otherRadioButton.isChecked()) tip.setCategory("Other");
 
             tip.setTitle(title);
             tip.setDescription(description);
@@ -348,32 +333,19 @@ public class CreateTipActivity extends ActionBarActivity {
             tip.setEndDate(chosenEndDate.getTime());
             tip.setStartDate(chosenStartDate.getTime());
             tip.setUuidString();
-            final String finalCategory = category;
-            final Group finalGroup = group;
+            tip.setCreator(((Application) getApplicationContext()).getCurrentUser());
             tip.saveInBackground(new SaveCallback() {
 
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
-
-                        // and now, make the relation from category to tip
-                        ParseQuery<ParseObject> query = ParseQuery.getQuery("Category");
-                        query.whereEqualTo("name", finalCategory);
-                        query.findInBackground(new FindCallback<ParseObject>() {
-                            public void done(List<ParseObject> itemList, ParseException e) {
-                                if (e == null) {
-                                    ((Category) itemList.get(0)).addTip(tip);
-                                    ((Category) itemList.get(0)).saveInBackground();
-                                } else {
-                                    Log.d("item", "Error: " + e.getMessage());
-                                }
-                            }
-                        });
-                        // finally, add tip to group
-                        if(finalGroup != null) {
-                            finalGroup.addTip(tip);
+                        if(group != null) {
+                            // now make the relation from group to tip
+                            group.addTip(tip);
+                            group.saveInBackground();
                         }
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("source", ACTIVITY_ID);
                         setResult(RESULT_OK, intent);
                         finish();
                     } else {
@@ -390,6 +362,31 @@ public class CreateTipActivity extends ActionBarActivity {
         else return false;
     }
 
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    private Intent getParentActivity() {
+        Intent intent = null;
+        if (sourceActivity.equals("MainActivity")) {
+            intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        } else if (sourceActivity.equals("ShowGroupActivity")){
+            intent = new Intent(this, ShowGroupActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else {
+            Log.d(ACTIVITY_ID, "No sourceActivity provided.");
+        }
+        return intent;
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -400,16 +397,115 @@ public class CreateTipActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // handling action bar events
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        }
+        } else if (id == R.id.groups) {
+            Intent intent = new Intent(this, MyGroupsActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.favourites) {
+            Intent intent = new Intent(this, TipListActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            intent.putExtra("context", "favourites");
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.profile) {
+            Intent intent = new Intent(this, MyProfileActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.logout){
+            try {
+                ((Application)getApplicationContext()).getCurrentUser().unpin();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            ((Application)getApplicationContext()).setCurrentUser(null);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.camera) {
+            // bundle camera intent and gallery intent together to a chooser intent
+            List<Intent> intents = new ArrayList<>();
 
+            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            intents.add(cameraIntent);
+
+            Intent galleryIntent = new Intent();
+            galleryIntent.setType("image/*");
+            galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+            Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Source");
+
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toArray(new Parcelable[intents.size()]));
+            startActivityForResult(chooserIntent, CAPTURE_IMAGE_REQUEST);
+        }
         return super.onOptionsItemSelected(item);
     }
+
+
+    /**
+     * Called when the camera/gallery intent returns
+     * Saved the captured/chosen image to the tip, rotating it if needed and compressing
+     * it to a lower quality for optimal storage
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Uri selectedImageUri = data == null ? null : data.getData();
+                try {
+                    Bitmap bitmap = ImageHelper.decodeBitmapFromUri(getApplicationContext(), selectedImageUri, ImageHelper.IMAGE_SIZE);
+
+                    // check orientation - if portrait the image will have rotated so we need to rotate it back
+                    ExifInterface ei = new ExifInterface(ImageHelper.getRealPathFromURI(getApplicationContext(), selectedImageUri));
+                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                    switch(orientation) {
+                        case ExifInterface.ORIENTATION_ROTATE_90:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 90);
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_180:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 180);
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_270:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 270);
+                            break;
+                    }
+
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, ImageHelper.COMPRESSION_QUALITY, stream);
+                    byte[] image = stream.toByteArray();
+
+                    // Create the ParseFile and save it to the tip
+                    ParseFile file = new ParseFile("image.jpeg", image);
+                    file.saveInBackground();
+
+                    tip = new Tip();
+                    tip.setImage(file);
+                    Toast.makeText(getApplicationContext(), "Image saved to tip.", Toast.LENGTH_SHORT).show();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d(ACTIVITY_ID, "User cancelled image capture.");
+            } else {
+                Toast.makeText(getApplicationContext(), "Image capture failed.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+
+
+
+
 }

@@ -18,13 +18,15 @@
         android:weightSum="1"
         android:id="@+id/linearLayout">
 
-        <ImageView
-            android:layout_width="150dp"
+        <com.parse.ParseImageView
+            android:layout_width="fill_parent"
             android:layout_height="150dp"
+            android:adjustViewBounds="true"
+            android:layout_centerInParent="true"
             android:id="@+id/showGroup_iv_groupImage"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="30dp"
-            android:src="@drawable/ic_action_group_big" />
+            android:layout_margin="20dp"
+            android:layout_weight="0.28" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -36,11 +38,8 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:id="@+id/showGroup_lv_groups"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@+id/linearLayout"
-            android:layout_above="@+id/ShowGroupActivity_fragment_container"
             android:layout_marginTop="10dp"
-            android:layout_weight="1.36" />
+             />
     </LinearLayout>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"

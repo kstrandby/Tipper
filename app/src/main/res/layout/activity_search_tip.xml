@@ -122,7 +122,15 @@
         android:id="@+id/searchTip_ed_keywords"
         android:layout_alignEnd="@+id/searchTip_ed_location"
         android:textColor="@color/primary"
-        android:hint="Keywords (optional)"
+        android:hint="Keyword (optional)"
         android:textColorHint="@color/primary" />
+
+    <SearchView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchView"
+        android:layout_above="@+id/searchTip_b_search"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="877dp" />
 
 </RelativeLayout>

@@ -1,19 +1,26 @@
 package kstr14.tipper.Activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
-import android.widget.ImageView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseImageView;
 import com.parse.ParseQuery;
 
 import java.util.List;
@@ -23,13 +30,16 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 public class ShowGroupActivity extends ActionBarActivity {
 
+    private static final String ACTIVITY_ID = "ShowGroupActivity";
+
     private Menu menu;
 
-    private ImageView imageView;
+    private ParseImageView imageView;
     private ListView listView;
     private TextView descriptionView;
     private Group group;
@@ -39,11 +49,16 @@ public class ShowGroupActivity extends ActionBarActivity {
 
     private boolean member;
 
+    private String sourceActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_group);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        sourceActivity = getIntent().getExtras().getString("source");
 
         // check if the group we are showing is a group the current user is not member of
         // or a group the user is member of, to show the correct fragment
@@ -54,28 +69,32 @@ public class ShowGroupActivity extends ActionBarActivity {
         query.findInBackground(new FindCallback<Group>() {
             @Override
             public void done(List<Group> list, ParseException e) {
-                if (list.isEmpty()) {
-                    // user not member of group - show fragment with Join button
-                    GroupNotMemberFragment notMemberFragment = new GroupNotMemberFragment();
-                    getFragmentManager().beginTransaction()
-                            .add(R.id.ShowGroupActivity_fragment_container, notMemberFragment).commit();
-                    member = false;
-                    MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
-                    addItem.setVisible(false);
+                if(e == null && list != null) {
+                    if (list.isEmpty()) {
+                        // user not member of group - show fragment with Join button
+                        GroupNotMemberFragment notMemberFragment = new GroupNotMemberFragment();
+                        getFragmentManager().beginTransaction()
+                                .add(R.id.ShowGroupActivity_fragment_container, notMemberFragment).commit();
+                        member = false;
+                        MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
+                        addItem.setVisible(false);
+                    } else {
+                        // user member of group - show fragment with Leave button
+                        GroupMemberFragment memberFragment = new GroupMemberFragment();
+                        getFragmentManager().beginTransaction()
+                                .add(R.id.ShowGroupActivity_fragment_container, memberFragment).commit();
+                        group = list.get(0);
+                        member = true;
+                    }
                 } else {
-                    // user member of group - show fragment with Leave button
-                    GroupMemberFragment memberFragment = new GroupMemberFragment();
-                    getFragmentManager().beginTransaction()
-                            .add(R.id.ShowGroupActivity_fragment_container, memberFragment).commit();
-                    group = list.get(0);
-                    member = true;
+                    Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
                 }
             }
         });
 
 
         // initialize UI elements
-        imageView = (ImageView) findViewById(R.id.showGroup_iv_groupImage);
+        imageView = (ParseImageView) findViewById(R.id.showGroup_iv_groupImage);
         listView = (ListView) findViewById(R.id.showGroup_lv_groups);
         descriptionView = (TextView) findViewById(R.id.showGroup_tv_description);
 
@@ -87,39 +106,87 @@ public class ShowGroupActivity extends ActionBarActivity {
             groupQuery.getFirstInBackground(new GetCallback<Group>() {
                 @Override
                 public void done(Group object, ParseException e) {
-                    if (e == null) {
+                    if (e == null && object != null) {
                         group = object;
 
                         // set actionBar title to name of group
                         getSupportActionBar().setTitle(group.getName());
                         descriptionView.setText(group.getDescription());
 
+                        // set default image if no image exist in database
+                        ParseFile image = group.getImage();
+                        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_group_big, 256, 256);
+                        if(image == null) {
+                            imageView.setImageBitmap(img);
+                        } else {
+                            imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
+                            imageView.setParseFile(image);
+                            imageView.loadInBackground();
+                        }
+
                         // fetch tips of group
-                        group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
+                        updateTipList();
+                        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
-                            public void done(List<Tip> list, ParseException e) {
-                                adapter = new TipBaseAdapter(getApplicationContext(), list);
-                                listView.setAdapter(adapter);
+                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                // grab the selected tip and start intent for show tip activity
+                                Tip tip = (Tip) listView.getAdapter().getItem(position);
+                                Intent intent = new Intent(ShowGroupActivity.this, ShowTipActivity.class);
+                                intent.putExtra("source", ACTIVITY_ID);
+                                intent.putExtra("ID", tip.getUuidString());
+                                startActivity(intent);
+                            }
+                        });
+                        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                            @Override
+                            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                                // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
+                                final Tip tip = (Tip) listView.getAdapter().getItem(position);
+
+                                if (tip.getCreator().equals(currentUser) || group.getCreator().equals(currentUser)) {
+                                    // create dialog for deletion of item
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupActivity.this);
+                                    builder.setTitle("Remove tip?");
+                                    builder.setMessage("Are you sure you wish to delete this tip?");
+                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // remove tip from database
+
+                                            tip.deleteInBackground();
+                                            updateTipList();
+                                            Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                                    builder.create().show();
+                                    return true;
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
+                                    return true;
+                                }
                             }
                         });
 
                         // hide the tips, if the current user is not a member and the group is closed
-                        if(!member && group.isClosed()) {
+                        if (!member && group.isClosed()) {
                             listView.setVisibility(View.INVISIBLE);
                         }
 
-                        //TODO set image
-
                     } else {
-                        e.printStackTrace();
+                        Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
                     }
                 }
             });
         } else {
-
             // set actionBar title to name of group
             getSupportActionBar().setTitle(group.getName());
-                descriptionView.setText(group.getDescription());
+            descriptionView.setText(group.getDescription());
 
             // fetch tips of group and set up adapter and listview
             group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
@@ -171,10 +238,37 @@ public class ShowGroupActivity extends ActionBarActivity {
         group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
             @Override
             public void done(List<Tip> list, ParseException e) {
+                System.out.println("Found " + list.size() + " tips");
                 adapter = new TipBaseAdapter(getApplicationContext(), list);
                 listView.setAdapter(adapter);
+                adapter.notifyDataSetChanged();
+                System.out.println("Done with setting adapter");
             }
         });
+    }
+
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    private Intent getParentActivity() {
+        Intent intent = null;
+        if (sourceActivity.equals("TipListActivity")) {
+            intent = new Intent(this, TipListActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if(sourceActivity.equals("MyGroupsActivity")) {
+            intent = new Intent(this, MyGroupsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else {
+            Log.d(ACTIVITY_ID, "No sourceActivity specified.");
+        }
+        return intent;
     }
 
     @Override
@@ -197,9 +291,35 @@ public class ShowGroupActivity extends ActionBarActivity {
             return true;
         } else if (id == R.id.action_add_tip_to_group) {
             Intent intent = new Intent(ShowGroupActivity.this, CreateTipActivity.class);
-            intent.putExtra("source", "ShowGroupActivity");
+            intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("groupID", group.getUuidString());
             startActivityForResult(intent, MainActivity.CREATE_TIP_REQUEST);
+            return true;
+        } else if (id == R.id.groups) {
+            Intent intent = new Intent(this, MyGroupsActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.favourites) {
+            Intent intent = new Intent(this, TipListActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            intent.putExtra("context", "favourites");
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.profile) {
+            Intent intent = new Intent(this, MyProfileActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.logout){
+            try {
+                ((Application)getApplicationContext()).getCurrentUser().unpin();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            ((Application)getApplicationContext()).setCurrentUser(null);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);

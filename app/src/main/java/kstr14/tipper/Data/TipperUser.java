@@ -56,6 +56,20 @@ public class TipperUser extends ParseObject {
         put("uuid", uuid.toString());
     }
 
+    public ParseRelation<Tip> getFavourites() {
+        return getRelation("favourites");
+    }
+
+    public void addFavourite(Tip tip){
+        getFavourites().add(tip);
+        saveInBackground();
+    }
+
+    public void removeFavourite(Tip tip) {
+        getFavourites().remove(tip);
+        saveInBackground();
+    }
+
     public String getUuidString() {
         return getString("uuid");
     }

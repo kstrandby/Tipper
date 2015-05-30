@@ -1,8 +1,13 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,19 +16,31 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.SaveCallback;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 public class CreateGroupActivity extends ActionBarActivity {
+
+    private static final String ACTIVITY_ID = "CreateGroupActivity";
+    private static final int IMAGE_REQUEST = 100;
 
     private EditText groupNameEditText;
     private EditText groupDescriptionEditText;
     private RadioButton closedGroupRadioButton;
     private RadioButton openGroupRadioButton;
+
+    private Group group;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,23 +64,121 @@ public class CreateGroupActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+        // handling action bar events
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.groups) {
+            Intent intent = new Intent(this, MyGroupsActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.favourites) {
+            Intent intent = new Intent(this, TipListActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            intent.putExtra("context", "favourites");
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.profile) {
+            Intent intent = new Intent(this, MyProfileActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.logout){
+            try {
+                ((Application)getApplicationContext()).getCurrentUser().unpin();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            ((Application)getApplicationContext()).setCurrentUser(null);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.camera) {
+            // bundle camera intent and gallery intent together to a chooser intent
+            List<Intent> intents = new ArrayList<>();
+
+            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+            intents.add(cameraIntent);
+
+            Intent galleryIntent = new Intent();
+            galleryIntent.setType("image/*");
+            galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+            Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Source");
+
+            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toArray(new Parcelable[intents.size()]));
+            startActivityForResult(chooserIntent, IMAGE_REQUEST);
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+
+    /**
+     * Called when the camera/gallery intent returns
+     * Saved the captured/chosen image to the group, rotating it if needed and compressing
+     * it to a lower quality for optimal storage
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == IMAGE_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Uri selectedImageUri = data == null ? null : data.getData();
+                try {
+                    Bitmap bitmap = ImageHelper.decodeBitmapFromUri(getApplicationContext(), selectedImageUri, ImageHelper.IMAGE_SIZE);
+
+                    // check orientation - if portrait the image will have rotated so we need to rotate it back
+                    ExifInterface ei = new ExifInterface(ImageHelper.getRealPathFromURI(getApplicationContext(), selectedImageUri));
+                    int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                    switch(orientation) {
+                        case ExifInterface.ORIENTATION_ROTATE_90:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 90);
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_180:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 180);
+                            break;
+                        case ExifInterface.ORIENTATION_ROTATE_270:
+                            bitmap = ImageHelper.rotateBitmap(bitmap, 270);
+                            break;
+                    }
+
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, ImageHelper.COMPRESSION_QUALITY, stream);
+                    byte[] image = stream.toByteArray();
+
+                    // Create the ParseFile and save it to the tip
+                    ParseFile file = new ParseFile("image.jpeg", image);
+                    file.saveInBackground();
+
+                    group = new Group();
+                    group.setImage(file);
+                    Toast.makeText(getApplicationContext(), "Image saved to group.", Toast.LENGTH_SHORT).show();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d(ACTIVITY_ID, "User cancelled image capture.");
+            } else {
+                Toast.makeText(getApplicationContext(), "Image capture failed.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
     public void createGroup(View view) {
         String name = groupNameEditText.getText().toString();
         String description = groupDescriptionEditText.getText().toString();
-        final Group group = new Group();
+        if(group == null) {
+            group = new Group();
+        }
+
 
         // validate input
         if(name.length() == 0) {
@@ -91,6 +206,7 @@ public class CreateGroupActivity extends ActionBarActivity {
 
                         // and start intent to MyGroupsActivity
                         Intent intent = new Intent(getApplicationContext(), MyGroupsActivity.class);
+                        intent.putExtra("source", ACTIVITY_ID);
                         setResult(RESULT_OK, intent);
                         finish();
                     } else {

@@ -8,4 +8,13 @@
         android:title="Share"
         android:icon="@drawable/ic_action_share"
         app:showAsAction="always"/>
+
+    <item android:id="@+id/groups"
+        android:title="My Groups"/>
+    <item android:id="@+id/profile"
+        android:title="My Profile"/>
+    <item android:id="@+id/logout"
+        android:title="Log out"/>
+    <item android:id="@+id/favourites"
+        android:title="Favourites"/>
 </menu>

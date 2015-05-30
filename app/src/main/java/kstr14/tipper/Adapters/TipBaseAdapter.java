@@ -6,23 +6,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.parse.FindCallback;
-import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseImageView;
 
 import java.util.List;
 
-import kstr14.tipper.BitmapHelper;
-import kstr14.tipper.Data.Category;
 import kstr14.tipper.Data.Tip;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 /**
  * Created by Kristine on 16-05-2015.
  */
 public class TipBaseAdapter extends BaseAdapter {
+
+    private static final String TAG = "TipBaseAdapter";
 
     private Context context;
     private List<Tip> tips;
@@ -56,27 +56,32 @@ public class TipBaseAdapter extends BaseAdapter {
 
         TextView titleView = (TextView) view.findViewById(R.id.titleTextView);
         TextView locationView = (TextView) view.findViewById(R.id.locationTextView);
-        final ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
+        final ParseImageView imageView = (ParseImageView) view.findViewById(R.id.imageView);
         TextView priceView = (TextView) view.findViewById(R.id.priceTextViewListItem);
 
         titleView.setText(tips.get(position).getTitle());
         priceView.setText("$" + tips.get(position).getPrice());
-        Bitmap img = null;
-        tips.get(position).getCategoriesRelation().getQuery().findInBackground(new FindCallback<Category>() {
-            @Override
-            public void done(List<Category> list, ParseException e) {
-                if (list.get(0).getName().equals("food")) {
-                    Bitmap img = BitmapHelper.decodeBitmapFromResource(context.getResources(), R.drawable.food, 128, 128);
-                    imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
-                } else if (list.get(0).getName().equals("drinks")) {
-                    Bitmap img = BitmapHelper.decodeBitmapFromResource(context.getResources(), R.drawable.drinks, 128, 128);
-                    imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
-                } else if (list.get(0).getName().equals("other")) {
-                    Bitmap img = BitmapHelper.decodeBitmapFromResource(context.getResources(), R.drawable.other, 128, 128);
-                    imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
-                }
+
+        ParseFile parseImg = tips.get(position).getImage();
+        if(parseImg != null) {
+            imageView.setPlaceholder(context.getResources().getDrawable(R.drawable.food));
+            imageView.setParseFile(parseImg);
+            imageView.loadInBackground();
+        } else {
+            Bitmap img = null;
+            String category = tips.get(position).getCategory();
+            if (category.equals("Food")) {
+                img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.food, 128, 128);
+                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+            } else if (category.equals("Drinks")) {
+                img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.drinks, 128, 128);
+                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+            } else if (category.equals("Other")) {
+                img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.other, 128, 128);
+                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
             }
-        });
+        }
+
 
         return view;
     }

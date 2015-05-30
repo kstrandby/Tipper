@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -22,16 +23,18 @@ import java.util.List;
 
 import kstr14.tipper.Adapters.TipBaseAdapter;
 import kstr14.tipper.Application;
-import kstr14.tipper.BitmapHelper;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String ACTIVITY_ID = "MainActivity";
     public static final int CREATE_TIP_REQUEST = 1;
+    private boolean exit = false;
+
 
     private TipperUser user;
 
@@ -55,18 +58,18 @@ public class MainActivity extends ActionBarActivity {
 
 
         // set images for imageButtons
-        Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
+        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
         foodButton.setImageBitmap(img);
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.drinks, 256, 256);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.drinks, 256, 256);
         drinksButton.setImageBitmap(img);
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
         otherButton.setImageBitmap(img);
 
         updateTipList();
 
         user = ((Application)getApplicationContext()).getCurrentUser();
         if(user != null) {
-            Log.d(TAG, user.getUsername() + " logged in");
+            Log.d(ACTIVITY_ID, user.getUsername() + " logged in");
         }
 
         // set click listener for tips in list to move to show tip activity
@@ -76,10 +79,25 @@ public class MainActivity extends ActionBarActivity {
                 // grab the selected tip and start intent for show tip activity
                 Tip tip = (Tip)listView.getAdapter().getItem(position);
                 Intent intent = new Intent(MainActivity.this, ShowTipActivity.class);
+                intent.putExtra("source", ACTIVITY_ID);
                 intent.putExtra("ID", tip.getUuidString());
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(exit) {
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "Press back again to exit.", Toast.LENGTH_SHORT).show();
+            exit = true;
+        }
     }
 
     @Override
@@ -105,19 +123,28 @@ public class MainActivity extends ActionBarActivity {
             return true;
         } else if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.favourites) {
+            Intent intent = new Intent(this, TipListActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            intent.putExtra("context", "favourites");
             startActivity(intent);
             return true;
         } else if (id == R.id.profile) {
             Intent intent = new Intent(this, MyProfileActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.action_add) {
+        } else if (id == R.id.action_add_tip) {
             Intent intent = new Intent(this, CreateTipActivity.class);
-            intent.putExtra("source", "MainActivity");
+            intent.putExtra("source", ACTIVITY_ID);
             startActivityForResult(intent, CREATE_TIP_REQUEST);
             return true;
         } else if (id == R.id.action_search) {
             Intent intent = new Intent(getApplicationContext(), SearchTipActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         } else if (id == R.id.logout){
@@ -135,7 +162,7 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
     // initialize the adapter for the ListView
-    // only public tips is shown
+    // only public tips are shown
     private void updateTipList() {
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
         query.whereEqualTo("private", false);
@@ -147,7 +174,7 @@ public class MainActivity extends ActionBarActivity {
                     adapter = new TipBaseAdapter(getApplicationContext(), tips);
                     listView.setAdapter((ListAdapter) adapter);
                 } else {
-                    Log.d(TAG, "Did not find any public tips");
+                    Log.d(ACTIVITY_ID, "Did not find any public tips");
                 }
             }
         });
@@ -163,23 +190,26 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void foodCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
-        intent.putExtra("source", "MainActivity");
-        intent.putExtra("category", "food");
+        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        intent.putExtra("source", ACTIVITY_ID);
+        intent.putExtra("context", "category");
+        intent.putExtra("category", "Food");
         startActivity(intent);
     }
 
     public void drinksCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
-        intent.putExtra("source", "MainActivity");
-        intent.putExtra("category", "drinks");
+        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        intent.putExtra("source", ACTIVITY_ID);
+        intent.putExtra("context", "category");
+        intent.putExtra("category", "Drinks");
         startActivity(intent);
     }
 
     public void otherCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), SearchResultActivity.class);
-        intent.putExtra("source", "MainActivity");
-        intent.putExtra("category", "other");
+        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        intent.putExtra("source", ACTIVITY_ID);
+        intent.putExtra("context", "category");
+        intent.putExtra("category", "Other");
         startActivity(intent);
     }
 }

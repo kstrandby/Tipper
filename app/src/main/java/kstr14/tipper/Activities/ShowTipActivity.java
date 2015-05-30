@@ -1,30 +1,39 @@
 package kstr14.tipper.Activities;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.GetCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseImageView;
 import com.parse.ParseQuery;
 
 import java.util.Calendar;
 import java.util.Locale;
 
-import kstr14.tipper.BitmapHelper;
+import kstr14.tipper.Application;
 import kstr14.tipper.Data.Tip;
+import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 public class ShowTipActivity extends ActionBarActivity {
 
+    private static final String ACTIVITY_ID = "ShowTipActivity";
+
     private Tip tip;
-    private ImageView imageView;
+    private ParseImageView imageView;
     private ImageButton upvoteButton;
     private ImageButton downvoteButton;
     private ImageButton favouritesButton;
@@ -38,16 +47,18 @@ public class ShowTipActivity extends ActionBarActivity {
     private TextView locationView;
     private TextView priceView;
 
+    private String sourceActivity;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_tip);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // initialize all UI elements
-        imageView = (ImageView) findViewById(R.id.showTip_iv_tipImage);
+        imageView = (ParseImageView) findViewById(R.id.showTip_iv_tipImage);
         upvoteButton = (ImageButton) findViewById(R.id.showTip_ib_upvote);
         downvoteButton = (ImageButton) findViewById(R.id.showTip_ib_downvote);
         favouritesButton = (ImageButton) findViewById(R.id.showTip_ib_favourites);
@@ -62,16 +73,18 @@ public class ShowTipActivity extends ActionBarActivity {
         priceView = (TextView) findViewById(R.id.showTip_tv_price);
 
         // set images of ImageButtons and ImageViews
-        Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_up, 128, 128);
+        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_up, 128, 128);
         upvoteButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_down, 128, 128);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_down, 128, 128);
         downvoteButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.star, 128, 128);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.star, 128, 128);
         favouritesButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_go_to_today, 128, 128);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_go_to_today, 128, 128);
         dateIcon.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_map, 128, 128);
+        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_map, 128, 128);
         locationIcon.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
+
+        sourceActivity = getIntent().getExtras().getString("source");
 
         String ID = getIntent().getExtras().getString("ID");
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
@@ -95,11 +108,16 @@ public class ShowTipActivity extends ActionBarActivity {
                     //TODO set image and location
                     locationView.setText("Location unknown");
 
-                    // note to self: if no image, set image to either food, drinks or other, according to the category of the tip
-
-                    Bitmap img = BitmapHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
-                    imageView.setImageBitmap(img);
-
+                    // set default image if no image exist in database
+                    ParseFile image = tip.getImage();
+                    Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
+                    if(image == null) {
+                        imageView.setImageBitmap(img);
+                    } else {
+                        imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
+                        imageView.setParseFile(image);
+                        imageView.loadInBackground();
+                    }
                 } else {
                     e.printStackTrace();
                 }
@@ -144,6 +162,60 @@ public class ShowTipActivity extends ActionBarActivity {
         return output;
     }
 
+    public void upvoteClicked(View view) {
+        if(tip.getCreator().equals(((Application)getApplicationContext()).getCurrentUser())) {
+            Toast.makeText(getApplicationContext(), "You cannot upvote your own tip.", Toast.LENGTH_SHORT).show();
+        } else {
+            int oldVotes = tip.getUpvotes();
+            int newVotes = oldVotes + 1;
+            tip.setUpvotes(newVotes);
+            tip.saveInBackground();
+            upvoteView.setText(String.valueOf(newVotes));
+        }
+    }
+
+    public void downvoteClicked(View view) {
+        if(tip.getCreator().equals(((Application)getApplicationContext()).getCurrentUser())) {
+            Toast.makeText(getApplicationContext(), "You cannot downvote your own tip.", Toast.LENGTH_SHORT).show();
+        } else {
+            int oldVotes = tip.getDownvotes();
+            int newVotes = oldVotes + 1;
+            tip.setDownvotes(newVotes);
+            tip.saveInBackground();
+            downvoteView.setText(String.valueOf(newVotes));
+        }
+    }
+
+    public void favouritesButtonClicked(View view) {
+        TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+        user.addFavourite(tip);
+        user.saveInBackground();
+    }
+
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    private Intent getParentActivity() {
+        Intent intent = null;
+        if (sourceActivity.equals("MainActivity")) {
+            intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if(sourceActivity.equals("ShowGroupActivity")) {
+            intent = new Intent(this, ShowGroupActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if(sourceActivity.equals("TipListActivity")) {
+            intent = new Intent(this, TipListActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        }
+        return intent;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

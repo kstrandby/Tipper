@@ -33,61 +33,9 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:hint="Description (optional)"
-        android:layout_alignRight="@+id/tableLayout"
-        android:layout_alignEnd="@+id/tableLayout"
-        android:textColorHint="@color/accent" />
-
-    <TableLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/tableLayout"
+        android:textColorHint="@color/accent"
         android:layout_alignRight="@+id/createTip_ed_title"
-        android:layout_alignEnd="@+id/createTip_ed_title"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/createTip_ed_description"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp">
-
-        <TableRow
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_gravity="center_horizontal">
-
-            <CheckBox
-                style="@style/text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="FOOD"
-                android:id="@+id/createTip_cb_foodCategory"
-                android:layout_column="0"
-                android:checked="true"
-                android:textSize="15dp" />
-
-            <CheckBox
-                style="@style/text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="DRINKS"
-                android:id="@+id/createTip_cb_drinksCategory"
-                android:layout_column="1"
-                android:checked="false"
-                android:textSize="15dp" />
-
-            <CheckBox
-                style="@style/text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="OTHER"
-                android:id="@+id/createTip_cb_otherCategory"
-                android:layout_column="2"
-                android:checked="false"
-                android:textSize="15dp" />
-        </TableRow>
-    </TableLayout>
+        android:layout_alignEnd="@+id/createTip_ed_title" />
 
     <Button
         android:layout_width="250dp"
@@ -108,9 +56,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/createTip_sb_price"
-        android:layout_below="@+id/tableLayout"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp" />
+        android:layout_below="@+id/createTip_rg_categories"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         style="@style/text"
@@ -120,8 +67,7 @@
         android:id="@+id/createTip_tv_price"
         android:textStyle="bold"
         android:textSize="15dp"
-        android:layout_below="@+id/createTip_sb_price"
-        android:layout_alignStart="@+id/tableLayout" />
+        android:layout_below="@+id/createTip_sb_price" />
 
     <TextView
         style="@style/text"
@@ -281,5 +227,38 @@
             android:layout_alignStart="@+id/createTip_b_create"
             android:textSize="15dp" />
     </LinearLayout>
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/createTip_rg_categories"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/createTip_ed_description"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FOOD"
+            android:id="@+id/createTip_rb_food"
+            android:checked="true"
+            android:textColor="@color/primary" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DRINKS"
+            android:id="@+id/createTip_rb_drinks"
+            android:checked="false"
+            android:textColor="@color/primary" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OTHER"
+            android:id="@+id/createTip_rb_other"
+            android:checked="false"
+            android:textColor="@color/primary" />
+    </RadioGroup>
 
 </RelativeLayout>

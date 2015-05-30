@@ -7,6 +7,12 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SET_DEBUG_APP"/>
 
+    <!-- To use camera: -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
     <!--
  To retrieve OAuth 2.0 tokens or invalidate tokens to disconnect a user. This disconnect
      option is required to comply with the Google+ Sign-In developer policies
@@ -42,16 +48,19 @@
         </activity>
         <activity
             android:name=".Activities.CreateTipActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_create_tip" >
         </activity>
         <activity
             android:name=".Activities.SearchTipActivity"
+            android:parentActivityName=".Activities.MainActivity"
             android:label="@string/title_activity_search_tip" >
         </activity>
         <activity android:name=".Activities.ShowTipActivity" >
         </activity>
         <activity
-            android:name=".Activities.MyGroupsActivity">
+            android:name=".Activities.MyGroupsActivity"
+            android:parentActivityName=".Activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -64,7 +73,7 @@
             android:label="@string/title_activity_my_profile" >
         </activity>
         <activity
-            android:name=".Activities.SearchResultActivity"
+            android:name=".Activities.TipListActivity"
             android:label="@string/title_activity_search_result" >
         </activity>
         <activity
@@ -72,6 +81,8 @@
         </activity>
         <activity
             android:name=".Activities.CreateGroupActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:parentActivityName=".Activities.MyGroupsActivity"
             android:label="@string/title_activity_create_group" >
         </activity>
     </application>

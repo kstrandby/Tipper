@@ -1,6 +1,7 @@
 package kstr14.tipper.Data;
 
 import com.parse.ParseClassName;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
 
@@ -87,4 +88,11 @@ public class Group extends ParseObject {
         return getString("uuid");
     }
 
+    public void setImage(ParseFile image) {
+        put("image", image);
+    }
+
+    public ParseFile getImage() {
+        return getParseFile("image");
+    }
 }
