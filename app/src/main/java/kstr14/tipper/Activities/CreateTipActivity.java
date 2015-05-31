@@ -25,9 +25,11 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
@@ -44,6 +46,7 @@ import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
+import kstr14.tipper.MapsHelper;
 import kstr14.tipper.ParseHelper;
 import kstr14.tipper.R;
 
@@ -52,6 +55,7 @@ public class CreateTipActivity extends ActionBarActivity {
     private final static String ACTIVITY_ID = "CreateTipActivity";
 
     private static final int CAPTURE_IMAGE_REQUEST = 100;
+    private static final int CHOOSE_LOCATION_REQUEST = 200;
 
     private EditText titleInput;
     private EditText descriptionInput;
@@ -444,7 +448,7 @@ public class CreateTipActivity extends ActionBarActivity {
             startActivityForResult(chooserIntent, CAPTURE_IMAGE_REQUEST);
         } else if (id == R.id.location) {
             Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, CHOOSE_LOCATION_REQUEST);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -490,7 +494,9 @@ public class CreateTipActivity extends ActionBarActivity {
                     ParseFile file = new ParseFile("image.jpeg", image);
                     file.saveInBackground();
 
-                    tip = new Tip();
+                    if(tip == null) {
+                        tip = new Tip();
+                    }
                     tip.setImage(file);
                     Toast.makeText(getApplicationContext(), "Image saved to tip.", Toast.LENGTH_SHORT).show();
 
@@ -503,12 +509,20 @@ public class CreateTipActivity extends ActionBarActivity {
             } else {
                 Toast.makeText(getApplicationContext(), "Image capture failed.", Toast.LENGTH_SHORT).show();
             }
+        } else if (requestCode == CHOOSE_LOCATION_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                LatLng latLng = data.getParcelableExtra("latLng");
+                ParseGeoPoint location = MapsHelper.getParseGeoPointFromLatLng(latLng);
+                if(tip == null) {
+                    tip = new Tip();
+                }
+                tip.setLocation(location);
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d(ACTIVITY_ID, "User cancelled location picking.");
+            } else {
+                Toast.makeText(getApplicationContext(), "Location picking failed.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
-
-
-
-
-
-
 }

@@ -14,20 +14,31 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true">
 
-    <TextView
-        android:id="@+id/et_location"
-        android:layout_width="200dp"
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/showLocation_ib_search"
+            android:src="@drawable/ic_action_search_dark"
+            android:layout_margin="10dp"
+            android:background="@android:color/background_light"
+            android:onClick="searchClicked" />
+
+        <TextView
+        android:id="@+id/showLocation_tv_location"
+        android:layout_width="180dp"
         android:layout_height="match_parent"
-        android:layout_margin="10dp" />
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp" />
 
     <Button
-        android:id="@+id/btn_find"
+        android:id="@+id/showLocation_b_ok"
         android:layout_width="60dp"
         android:layout_height="35dp"
         android:text="OK"
         android:layout_margin="10dp"
         android:background="@color/primary"
-        android:textColor="#ffff" />
+        android:textColor="#ffff"
+        android:onClick="submitLocation" />
     </LinearLayout>
 
 </FrameLayout>

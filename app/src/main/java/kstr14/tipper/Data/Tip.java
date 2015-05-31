@@ -2,6 +2,7 @@ package kstr14.tipper.Data;
 
 import com.parse.ParseClassName;
 import com.parse.ParseFile;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 
 import java.util.Date;
@@ -98,7 +99,6 @@ public class Tip extends ParseObject {
         return getBoolean("private");
     }
 
-
     public void setUuidString() {
         UUID uuid = UUID.randomUUID();
         put("uuid", uuid.toString());
@@ -138,5 +138,13 @@ public class Tip extends ParseObject {
 
     public void setCreator(ParseObject user) {
         put("creator", user);
+    }
+
+    public ParseGeoPoint getLocation() {
+        return getParseGeoPoint("location");
+    }
+
+    public void setLocation(ParseGeoPoint location) {
+        put("location", location);
     }
 }
