@@ -8,13 +8,16 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseFile;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseImageView;
 
 import java.util.List;
 
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.ImageHelper;
+import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
 /**
@@ -82,6 +85,14 @@ public class TipBaseAdapter extends BaseAdapter {
             }
         }
 
+        ParseGeoPoint geoPoint = tips.get(position).getLocation();
+        if(geoPoint != null) {
+            LatLng latLng = MapsHelper.getLatLngFromParseGeoPoint(geoPoint);
+            String address = MapsHelper.getAddressFromLatLng(latLng, context);
+            locationView.setText(address);
+        } else {
+            locationView.setText("Location unknown");
+        }
 
         return view;
     }

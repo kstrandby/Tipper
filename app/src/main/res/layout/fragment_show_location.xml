@@ -10,9 +10,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:background="@android:color/background_light"
-        android:layout_marginBottom="25dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true">
+        android:layout_marginBottom="25dp">
 
         <ImageButton
             android:layout_width="40dp"
@@ -21,7 +19,8 @@
             android:src="@drawable/ic_action_search_dark"
             android:layout_margin="10dp"
             android:background="@android:color/background_light"
-            android:onClick="searchClicked" />
+            android:onClick="searchClicked"
+            android:contentDescription="@string/ib_description"/>
 
         <TextView
         android:id="@+id/showLocation_tv_location"
@@ -34,7 +33,7 @@
         android:id="@+id/showLocation_b_ok"
         android:layout_width="60dp"
         android:layout_height="35dp"
-        android:text="OK"
+        android:text="@string/b_text_ok"
         android:layout_margin="10dp"
         android:background="@color/primary"
         android:textColor="#ffff"

@@ -96,9 +96,7 @@ public class SearchTipActivity extends ActionBarActivity {
         // handling action bar events
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.groups) {
+        if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);

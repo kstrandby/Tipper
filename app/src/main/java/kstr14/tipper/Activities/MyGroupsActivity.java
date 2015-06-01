@@ -271,9 +271,7 @@ public class MyGroupsActivity extends ActionBarActivity {
         // handling action bar events
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        }  else if (id == R.id.favourites) {
+        if (id == R.id.favourites) {
             Intent intent = new Intent(this, TipListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");

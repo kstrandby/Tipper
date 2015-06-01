@@ -17,9 +17,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:hint="Title"
-        android:layout_row="0"
-        android:layout_column="0"
+        android:hint="@string/hint_create_tip_title"
         android:textColorHint="@color/accent" />
 
     <EditText
@@ -32,7 +30,7 @@
         android:layout_below="@+id/createTip_ed_title"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:hint="Description (optional)"
+        android:hint="@string/hint_create_tip_description"
         android:textColorHint="@color/accent"
         android:layout_alignRight="@+id/createTip_ed_title"
         android:layout_alignEnd="@+id/createTip_ed_title" />
@@ -40,12 +38,10 @@
     <Button
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:text="CREATE"
+        android:text="@string/b_text_create"
         android:id="@+id/createTip_b_create"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
-        android:layout_row="14"
-        android:layout_column="1"
         android:onClick="createTip"
         android:background="#6c71a5"
         android:layout_alignParentBottom="true"
@@ -63,10 +59,10 @@
         style="@style/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Price: 0 AUD"
+        android:text="@string/tv_text_create_tip_price"
         android:id="@+id/createTip_tv_price"
         android:textStyle="bold"
-        android:textSize="15dp"
+        android:textSize="15sp"
         android:layout_below="@+id/createTip_sb_price" />
 
     <TextView
@@ -74,11 +70,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="NOTE: If the group set is a private group, this tip will only be visible for members of the group."
+        android:text="@string/tv_text_create_tip_note"
         android:id="@+id/createTip_tv_info"
         android:layout_below="@+id/createTip_ll_group"
         android:layout_alignParentStart="true"
-        android:textSize="12dp" />
+        android:textSize="12sp" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -93,7 +89,7 @@
             style="@style/text"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
-            android:text="Repeat"
+            android:text="@string/tv_text_create_tip_repeat"
             android:id="@+id/createTip_tv_repeatHead"
             android:textStyle="bold"
             android:layout_gravity="center" />
@@ -119,7 +115,7 @@
             style="@style/text"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
-            android:text="Group"
+            android:text="@string/tv_text_create_tip_group"
             android:id="@+id/createTip_tv_groupHead"
             android:textStyle="bold"
             android:layout_gravity="center" />
@@ -147,12 +143,9 @@
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Start:"
+            android:text="@string/tv_text_create_tip_start_date"
             android:id="@+id/createTip_tv_startDateHead"
-            android:layout_below="@+id/createTip_tv_price"
-            android:layout_alignLeft="@+id/createTip_b_create"
-            android:layout_alignStart="@+id/createTip_b_create"
-            android:textSize="15dp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
@@ -160,24 +153,18 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="dd-mm-yyyy"
+            android:text="@string/tv_text_create_tip_date_format"
             android:id="@+id/createTip_tv_startDate"
-            android:layout_below="@+id/createTip_tv_price"
-            android:layout_alignLeft="@+id/createTip_b_create"
-            android:layout_alignStart="@+id/createTip_b_create"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
 
         <TextView
             style="@style/text"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="hh:mm"
+            android:text="@string/tv_text_create_tip_time_format"
             android:id="@+id/createTip_tv_startTime"
-            android:layout_below="@+id/createTip_tv_price"
-            android:layout_alignLeft="@+id/createTip_b_create"
-            android:layout_alignStart="@+id/createTip_b_create"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -195,12 +182,9 @@
             android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="End:"
+            android:text="@string/tv_text_create_tip_end_date"
             android:id="@+id/createTip_tv_endDateHead"
-            android:layout_below="@+id/createTip_tv_startDateHead"
-            android:layout_alignLeft="@+id/createTip_tv_startDateHead"
-            android:layout_alignStart="@+id/createTip_tv_startDateHead"
-            android:textSize="15dp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
         <TextView
@@ -208,24 +192,18 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="dd-mm-yyyy"
+            android:text="@string/tv_text_create_tip_date_format"
             android:id="@+id/createTip_tv_endDate"
-            android:layout_below="@+id/createTip_tv_price"
-            android:layout_alignLeft="@+id/createTip_b_create"
-            android:layout_alignStart="@+id/createTip_b_create"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
 
         <TextView
             style="@style/text"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="hh:mm"
+            android:text="@string/tv_text_create_tip_time_format"
             android:id="@+id/createTip_tv_endTime"
-            android:layout_below="@+id/createTip_tv_price"
-            android:layout_alignLeft="@+id/createTip_b_create"
-            android:layout_alignStart="@+id/createTip_b_create"
-            android:textSize="15dp" />
+            android:textSize="15sp" />
     </LinearLayout>
 
     <RadioGroup
@@ -239,7 +217,7 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FOOD"
+            android:text="@string/rb_text_food"
             android:id="@+id/createTip_rb_food"
             android:checked="true"
             android:textColor="@color/primary" />
@@ -247,7 +225,7 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="DRINKS"
+            android:text="@string/rb_text_drinks"
             android:id="@+id/createTip_rb_drinks"
             android:checked="false"
             android:textColor="@color/primary" />
@@ -255,7 +233,7 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OTHER"
+            android:text="@string/rb_text_other"
             android:id="@+id/createTip_rb_other"
             android:checked="false"
             android:textColor="@color/primary" />

@@ -53,4 +53,8 @@ public class MapsHelper {
     public static ParseGeoPoint getParseGeoPointFromLatLng(LatLng latLng) {
         return new ParseGeoPoint(latLng.latitude, latLng.longitude);
     }
+
+    public static LatLng getLatLngFromParseGeoPoint(ParseGeoPoint parseGeoPoint) {
+        return new LatLng(parseGeoPoint.getLatitude(), parseGeoPoint.getLongitude());
+    }
 }

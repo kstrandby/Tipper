@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
@@ -47,7 +48,6 @@ import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
-import kstr14.tipper.ParseHelper;
 import kstr14.tipper.R;
 
 public class CreateTipActivity extends ActionBarActivity {
@@ -161,19 +161,22 @@ public class CreateTipActivity extends ActionBarActivity {
 
             // otherwise the spinner will contain all the groups the current user is member of
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            SpinnerGroupAdapter adapter = null;
-            try {
-                List<Group> groups = ParseHelper.getUsersGroups(user);
-                // add a dummy group as well, for being able to create a tip that has no group
-                ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
-                Group dummyGroup = dummyQuery.whereEqualTo("uuid", "dummy").getFirst();
-                if(dummyGroup != null) groups.add(dummyGroup);
-                adapter = new SpinnerGroupAdapter(this, R.layout.simple_spinner_item, groups);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
-            groupChoice.setAdapter(adapter);
+            user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+                @Override
+                public void done(final List<Group> list, ParseException e) {
+                    // add a dummy group as well, for being able to create a tip that has no group
+                    ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
+                    dummyQuery.whereEqualTo("uuid", "dummy").getFirstInBackground(new GetCallback<Group>() {
+                        @Override
+                        public void done(Group group, ParseException e) {
+                            if(group != null) list.add(group);
+                            SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(getApplicationContext(), R.layout.simple_spinner_item, list);
+                            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+                            groupChoice.setAdapter(adapter);
+                        }
+                    });
+                }
+            });
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity provided!");
         }
@@ -404,9 +407,7 @@ public class CreateTipActivity extends ActionBarActivity {
         // handling action bar events
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.groups) {
+        if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);

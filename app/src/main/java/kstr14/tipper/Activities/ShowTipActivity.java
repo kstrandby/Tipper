@@ -2,6 +2,7 @@ package kstr14.tipper.Activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -9,13 +10,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseImageView;
 import com.parse.ParseQuery;
 
@@ -26,6 +28,7 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
+import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
 public class ShowTipActivity extends ActionBarActivity {
@@ -40,9 +43,6 @@ public class ShowTipActivity extends ActionBarActivity {
     private TextView upvoteView;
     private TextView downvoteView;
     private TextView descriptionView;
-    private ImageView dateIcon;
-    private ImageView locationIcon;
-    private ImageView priceIcon;
     private TextView dateView;
     private TextView locationView;
     private TextView priceView;
@@ -65,9 +65,6 @@ public class ShowTipActivity extends ActionBarActivity {
         upvoteView = (TextView) findViewById(R.id.showTip_tv_upvotes);
         downvoteView = (TextView) findViewById(R.id.showTip_tv_downvotes);
         descriptionView = (TextView) findViewById(R.id.showTip_tv_description);
-        dateIcon = (ImageView) findViewById(R.id.showTip_iv_dateIcon);
-        locationIcon = (ImageView) findViewById(R.id.showTip_iv_locationIcon);
-        priceIcon = (ImageView) findViewById(R.id.showTip_iv_priceIcon);
         dateView = (TextView) findViewById(R.id.showTip_tv_date);
         locationView = (TextView) findViewById(R.id.showTip_tv_location);
         priceView = (TextView) findViewById(R.id.showTip_tv_price);
@@ -79,10 +76,6 @@ public class ShowTipActivity extends ActionBarActivity {
         downvoteButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
         img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.star, 128, 128);
         favouritesButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_go_to_today, 128, 128);
-        dateIcon.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_map, 128, 128);
-        locationIcon.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
 
         sourceActivity = getIntent().getExtras().getString("source");
 
@@ -105,8 +98,16 @@ public class ShowTipActivity extends ActionBarActivity {
                     String dateText = prettyOutputDates();
                     dateView.setText(dateText);
                     priceView.setText("$ " + tip.getPrice());
-                    //TODO set image and location
-                    locationView.setText("Location unknown");
+
+                    ParseGeoPoint geoPoint = tip.getLocation();
+                    if(geoPoint == null) {
+                        locationView.setText("Location unknown");
+                    } else {
+                        LatLng latLng = MapsHelper.getLatLngFromParseGeoPoint(geoPoint);
+                        String address = MapsHelper.getAddressFromLatLng(latLng, getApplicationContext());
+                        locationView.setText(address);
+                    }
+
 
                     // set default image if no image exist in database
                     ParseFile image = tip.getImage();
@@ -186,6 +187,18 @@ public class ShowTipActivity extends ActionBarActivity {
         }
     }
 
+    public void navigateClicked(View view) {
+        ParseGeoPoint geoPoint = tip.getLocation();
+        if(geoPoint != null) {
+            String url = "http://maps.google.com/maps?daddr=" + geoPoint.getLatitude() + "," + geoPoint.getLongitude();
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,  Uri.parse(url));
+            startActivity(intent);
+        } else {
+            Toast.makeText(getApplicationContext(), "Cannot navigate to unknown location.", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
     public void favouritesButtonClicked(View view) {
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
         user.addFavourite(tip);
@@ -226,13 +239,33 @@ public class ShowTipActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.groups) {
+            Intent intent = new Intent(this, MyGroupsActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.favourites) {
+            Intent intent = new Intent(this, TipListActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            intent.putExtra("context", "favourites");
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.profile) {
+            Intent intent = new Intent(this, MyProfileActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.logout){
+            try {
+                ((Application)getApplicationContext()).getCurrentUser().unpin();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            ((Application)getApplicationContext()).setCurrentUser(null);
+            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(intent);
             return true;
         }
 

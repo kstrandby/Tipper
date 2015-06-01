@@ -4,24 +4,17 @@
     tools:context="kstr14.tipper.Activities.CreateGroupActivity">
 
     <item android:id="@+id/camera"
-        android:title="Camera"
+        android:title="@string/menu_camera"
         android:icon="@drawable/ic_action_camera"
-        app:showAsAction="always"></item>
+        app:showAsAction="always"/>
 
+    <!-- items in menu overflow -->
     <item android:id="@+id/profile"
-        android:title="My Profile"/>
-
+        android:title="@string/menu_my_profile"/>
     <item android:id="@+id/groups"
-        android:title="My Groups"/>
-
+        android:title="@string/menu_my_groups"/>
     <item android:id="@+id/favourites"
-        android:title="Favourites"/>
-
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        app:showAsAction="never" />
-
+        android:title="@string/menu_favourites"/>
     <item android:id="@+id/logout"
-        android:title="Log out"/>
+        android:title="@string/menu_log_out"/>
 </menu>

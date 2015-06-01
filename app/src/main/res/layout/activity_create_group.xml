@@ -13,7 +13,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:hint="Group name"
+        android:hint="@string/hint_create_group_name"
         android:textColorHint="@color/accent"
         android:textColor="@color/primary"
         android:layout_marginTop="20dp" />
@@ -25,7 +25,7 @@
         android:layout_below="@+id/createGroup_ed_groupName"
         android:layout_alignParentStart="true"
         android:layout_alignEnd="@+id/createGroup_ed_groupName"
-        android:hint="Group description"
+        android:hint="@string/hint_create_group_description"
         android:textColorHint="@color/accent"
         android:textColor="@color/primary" />
 
@@ -40,7 +40,7 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Closed group"
+            android:text="@string/rb_text_create_group_closed"
             android:id="@+id/createGroup_rb_closedGroup"
             android:layout_gravity="left|center_horizontal"
             android:checked="false"
@@ -49,7 +49,7 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Open group"
+            android:text="@string/rb_text_create_group_open"
             android:id="@+id/createGroup_rb_openGroup"
             android:layout_gravity="left|center_horizontal"
             android:checked="true"
@@ -59,16 +59,14 @@
     <Button
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:text="CREATE"
+        android:text="@string/b_text_create"
         android:id="@+id/createGroup_b_create"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
-        android:layout_row="14"
-        android:layout_column="1"
         android:onClick="createGroup"
-        android:background="#6c71a5"
+        android:background="@color/primary"
+        android:layout_marginBottom="130dp"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="136dp" />
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

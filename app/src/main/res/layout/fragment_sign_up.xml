@@ -14,7 +14,8 @@
             android:layout_width="262dp"
             android:layout_height="122dp"
             android:src="@drawable/tipper"
-            android:layout_marginTop="20dp" />
+            android:layout_marginTop="20dp"
+            android:contentDescription="@string/iv_description"/>
 
         <LinearLayout
             android:orientation="vertical"
@@ -30,7 +31,7 @@
                 android:ems="10"
                 android:id="@+id/usernameSignupFragment"
                 android:layout_gravity="center_horizontal"
-                android:hint="Username"
+                android:hint="@string/hint_login_username"
                 android:textColorHint="@color/accent"
                 android:textColor="@color/accent" />
 
@@ -41,7 +42,7 @@
                 android:ems="10"
                 android:id="@+id/emailSignupFragment"
                 android:layout_gravity="center_horizontal"
-                android:hint="Email"
+                android:hint="@string/hint_login_email"
                 android:textColorHint="@color/accent"
                 android:textColor="@color/accent" />
 
@@ -53,7 +54,7 @@
                 android:id="@+id/passwordSignupFragment"
                 android:layout_gravity="center_horizontal"
                 android:textColorHint="@color/accent"
-                android:hint="Password"
+                android:hint="@string/hint_login_password"
                 android:textColor="@color/accent" />
 
             <EditText
@@ -64,7 +65,7 @@
                 android:id="@+id/reenterPasswordSignupFragment"
                 android:layout_gravity="center_horizontal"
                 android:textColorHint="@color/accent"
-                android:hint="Re-enter password"
+                android:hint="@string/hint_login_reenter_password"
                 android:textColor="@color/accent" />
 
         </LinearLayout>
@@ -74,7 +75,7 @@
     <Button
         android:layout_width="310dp"
         android:layout_height="wrap_content"
-        android:text="Sign up"
+        android:text="@string/b_text_sigup"
         android:id="@+id/signupButtonSignupFragment"
         android:textColor="#ffffffff"
         android:background="@color/accent"

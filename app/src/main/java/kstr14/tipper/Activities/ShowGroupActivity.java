@@ -286,10 +286,7 @@ public class ShowGroupActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else if (id == R.id.action_add_tip_to_group) {
+        if (id == R.id.action_add_tip_to_group) {
             Intent intent = new Intent(ShowGroupActivity.this, CreateTipActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("groupID", group.getUuidString());

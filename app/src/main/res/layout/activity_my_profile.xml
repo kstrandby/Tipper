@@ -9,20 +9,20 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Username: "
+        android:text="@string/tv_text_my_profile_username"
         android:id="@+id/myProfile_tv_username_head"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:layout_margin="5dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Email: "
+        android:text="@string/tv_text_my_profile_email"
         android:id="@+id/myProfile_tv_email_head"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:layout_below="@+id/myProfile_tv_username_head"
         android:layout_alignParentStart="true"
         android:layout_alignEnd="@+id/myProfile_tv_username_head"
@@ -32,9 +32,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="username "
         android:id="@+id/myProfile_tv_username"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:layout_alignBottom="@+id/myProfile_tv_username_head"
         android:layout_alignParentEnd="true"
         android:layout_toEndOf="@+id/myProfile_tv_username_head" />
@@ -42,9 +41,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="email"
         android:id="@+id/myProfile_tv_email"
-        android:textSize="20dp"
+        android:textSize="20sp"
         android:layout_alignTop="@+id/myProfile_tv_email_head"
         android:layout_alignStart="@+id/myProfile_tv_username"
         android:layout_alignEnd="@+id/myProfile_tv_username" />

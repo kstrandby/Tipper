@@ -13,8 +13,6 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
         android:weightSum="1"
         android:id="@+id/linearLayout">
 
@@ -22,7 +20,6 @@
             android:layout_width="fill_parent"
             android:layout_height="150dp"
             android:adjustViewBounds="true"
-            android:layout_centerInParent="true"
             android:id="@+id/showGroup_iv_groupImage"
             android:layout_gravity="center_horizontal"
             android:layout_margin="20dp"
@@ -38,14 +35,13 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:id="@+id/showGroup_lv_groups"
-            android:layout_marginTop="10dp"
-             />
+            android:layout_marginTop="10dp"/>
+
     </LinearLayout>
 
     <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/ShowGroupActivity_fragment_container"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/showGroup_lv_groups" />
+        android:layout_height="fill_parent"/>
 
 </LinearLayout>

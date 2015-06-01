@@ -6,16 +6,14 @@
     <Button
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:text="Join group"
+        android:text="@string/b_text_join_group"
         android:id="@+id/showGroups_b_joinGroup"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:textColor="#fff"
         android:onClick="joinGroup"
         android:layout_marginBottom="30dp"
         android:layout_marginTop="10dp"
         android:layout_gravity="center"
         android:background="@color/primary"
-        android:textSize="20dp" />
+        android:textSize="20sp" />
 
 </FrameLayout>

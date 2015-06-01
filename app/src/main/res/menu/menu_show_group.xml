@@ -3,20 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="kstr14.tipper.Activities.ShowGroupActivity">
 
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
-
     <item android:id="@+id/action_add_tip_to_group"
-        android:title="Add tip"
+        android:title="@string/menu_add"
         android:icon="@drawable/ic_action_new"
         app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/groups"
-        android:title="My Groups"/>
+    <!-- items in menu overflow -->
     <item android:id="@+id/profile"
-        android:title="My Profile"/>
-    <item android:id="@+id/logout"
-        android:title="Log out"/>
+        android:title="@string/menu_my_profile"/>
+    <item android:id="@+id/groups"
+        android:title="@string/menu_my_groups"/>
     <item android:id="@+id/favourites"
-        android:title="Favourites"/>
+        android:title="@string/menu_favourites"/>
+    <item android:id="@+id/logout"
+        android:title="@string/menu_log_out"/>
 </menu>
