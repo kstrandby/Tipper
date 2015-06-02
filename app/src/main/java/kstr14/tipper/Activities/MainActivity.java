@@ -57,10 +57,18 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // set current user
-        user = ((Application)getApplicationContext()).getCurrentUser();
-        if(user != null) {
-            Log.d(ACTIVITY_ID, user.getUsername() + " logged in");
+        String uuid = getIntent().getExtras().getString("uuid");
+        System.out.println(uuid);
+        ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+        query.whereEqualTo("uuid", uuid);
+        try {
+            user = query.getFirst();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        if(user == null) {
+            System.out.println("user is still null");
+            setUser(((Application)getApplicationContext()).getCurrentUser());
         }
 
         // initialize UI elements
@@ -134,17 +142,17 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.action_add_tip) {
+        } else if (id == R.id.main_action_add_tip) {
             Intent intent = new Intent(this, CreateTipActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivityForResult(intent, CREATE_TIP_REQUEST);
             return true;
-        } else if (id == R.id.action_search) {
+        } else if (id == R.id.main_menu_search) {
             Intent intent = new Intent(getApplicationContext(), SearchTipActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.logout){
+        } else if (id == R.id.main_menu_logout){
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
@@ -275,6 +283,16 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         } else {
             Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
             return true;
+        }
+    }
+
+    public void setUser(TipperUser currentUser) {
+        // set current user
+        if(user != null) {
+            user = currentUser;
+            Log.d(ACTIVITY_ID, user.getUsername() + " logged in");
+        } else {
+            Log.d(ACTIVITY_ID, "User is anonymous");
         }
     }
 }

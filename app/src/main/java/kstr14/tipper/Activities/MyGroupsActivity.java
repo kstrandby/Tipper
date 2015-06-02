@@ -155,7 +155,7 @@ public class MyGroupsActivity extends ActionBarActivity {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 
             SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-            SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            SearchView searchView = (SearchView) menu.findItem(R.id.main_menu_search).getActionView();
             searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
 
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -218,7 +218,7 @@ public class MyGroupsActivity extends ActionBarActivity {
                 }
             }
             SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-            final SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+            final SearchView searchView = (SearchView) menu.findItem(R.id.main_menu_search).getActionView();
             searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
             searchView.setSuggestionsAdapter(new SearchViewAdapter(this, cursor, result));
         }
@@ -282,7 +282,7 @@ public class MyGroupsActivity extends ActionBarActivity {
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.logout){
+        } else if (id == R.id.main_menu_logout){
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
@@ -292,7 +292,7 @@ public class MyGroupsActivity extends ActionBarActivity {
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;
-        } else if (id == R.id.action_add_group) {
+        } else if (id == R.id.my_groups_menu_add_group) {
             Intent intent = new Intent(this, CreateGroupActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);

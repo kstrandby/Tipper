@@ -65,9 +65,14 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
         // check the source of the intent to know how to set up adapter
         intent = getIntent();
         sourceActivity = intent.getExtras().getString("source");
-
+        String context = intent.getExtras().getString("context");
+        if(context != null) {
+            if(context.equals("favourites")) {
+                getSupportActionBar().setTitle("Favourites");
+                listType = LIST_TYPE_FAVOURITES;
+            }
+        }
         if(sourceActivity.equals("MainActivity")) {
-            String context = intent.getExtras().getString("context");
             if(context.equals("category")) {
                 String category = intent.getExtras().getString("category");
                 getSupportActionBar().setTitle(category);
@@ -271,7 +276,7 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.logout){
+        } else if (id == R.id.main_menu_logout){
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {

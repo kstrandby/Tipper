@@ -2,12 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
 
-    <item android:id="@+id/action_search"
+    <item android:id="@+id/main_menu_search"
         android:title="@string/menu_search"
         android:icon="@drawable/ic_action_search"
         app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/action_add_tip"
+    <item android:id="@+id/main_action_add_tip"
         android:title="@string/menu_add"
         android:icon="@drawable/ic_action_new"
         app:showAsAction="always"/>
@@ -19,7 +19,7 @@
         android:title="@string/menu_my_groups"/>
     <item android:id="@+id/favourites"
         android:title="@string/menu_favourites"/>
-    <item android:id="@+id/logout"
+    <item android:id="@+id/main_menu_logout"
         android:title="@string/menu_log_out"/>
 
 </menu>

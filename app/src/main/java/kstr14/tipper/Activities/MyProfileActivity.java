@@ -110,7 +110,7 @@ public class MyProfileActivity extends ActionBarActivity {
             intent.putExtra("context", "favourites");
             startActivity(intent);
             return true;
-        }  else if (id == R.id.logout) {
+        }  else if (id == R.id.main_menu_logout) {
             try {
                 ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {

@@ -83,7 +83,7 @@ public class CreateGroupActivity extends ActionBarActivity {
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.logout){
+        } else if (id == R.id.main_menu_logout){
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {

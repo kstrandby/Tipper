@@ -67,6 +67,8 @@ public class LoginActivity extends ActionBarActivity {
                 System.out.println("Found cached user: " + user.getUsername());
                 app.setCurrentUser(user);
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.putExtra("uuid", user.getUuidString());
+                System.out.println(user.getUuidString());
                 startActivity(intent);
             } else {
                 System.out.println("No cached user found.");
@@ -131,6 +133,7 @@ public class LoginActivity extends ActionBarActivity {
                         app.setCurrentUser(user);
                         user.pinInBackground();
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        intent.putExtra("uuid", user.getUuidString());
                         startActivity(intent);
                     } else {
                         Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
@@ -166,30 +169,43 @@ public class LoginActivity extends ActionBarActivity {
             Toast.makeText(getApplicationContext(), "Please enter a password.", Toast.LENGTH_SHORT).show();
         } else if(!validatePassword(password1, password2)) {
             Toast.makeText(getApplicationContext(), "Passwords do not match, try again.", Toast.LENGTH_SHORT).show();
-        } else if (!validateEmail(email)) {
-            Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
+        } else if (!passwordLongEnough(password1)) {
+            Toast.makeText(getApplicationContext(), "Password too short - must be minimum 8 characters.", Toast.LENGTH_SHORT).show();
         } else try {
-            if (!usernameAvailable(username)) {
-                Toast.makeText(getApplicationContext(), "Sorry, username already taken.", Toast.LENGTH_SHORT).show();
-            } else {
-                final TipperUser user = new TipperUser();
-                user.setUsername(username);
+            if (!emailAlreadyExists(email)) {
+                Toast.makeText(getApplicationContext(), "Account already exists with this email.", Toast.LENGTH_SHORT).show();
+            } else if (!validateEmail(email)) {
+                Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
+            } else try {
+                if (!usernameAvailable(username)) {
+                    Toast.makeText(getApplicationContext(), "Sorry, username already taken.", Toast.LENGTH_SHORT).show();
+                } else {
+                    final TipperUser user = new TipperUser();
+                    user.setUsername(username);
 
-                // hash password with salt
-                String hashed = BCrypt.hashpw(password1, BCrypt.gensalt());
-                user.setPassword(hashed);
+                    // hash password with salt
+                    String hashed = BCrypt.hashpw(password1, BCrypt.gensalt());
+                    user.setPassword(hashed);
 
-                user.setEmail(email);
-                user.setUuidString();
-                user.save();
-                app.setCurrentUser(user);
-                user.pinInBackground();
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(intent);
+                    user.setEmail(email);
+                    user.save();
+                    app.setCurrentUser(user);
+                    user.pinInBackground();
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.putExtra("uuid", user.getUuidString());
+                    startActivity(intent);
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean passwordLongEnough(String password1) {
+        if(password1.length() < 8) return false;
+        else return true;
     }
 
 
@@ -246,10 +262,26 @@ public class LoginActivity extends ActionBarActivity {
      * Checks if a username is available
      * @param username
      * @return
+     * @throws ParseException
      */
     private boolean usernameAvailable(String username) throws ParseException {
         ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
         query.whereEqualTo("username", username);
+        List<TipperUser> result = query.find();
+        if(result.isEmpty()) {
+            return true;
+        } else return false;
+    }
+
+    /**
+     * Checks if an account with the given email already exists
+     * @param email
+     * @return
+     * @throws ParseException
+     */
+    private boolean emailAlreadyExists(String email) throws ParseException {
+        ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+        query.whereEqualTo("email", email);
         List<TipperUser> result = query.find();
         if(result.isEmpty()) {
             return true;
@@ -265,5 +297,10 @@ public class LoginActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+
     }
 }

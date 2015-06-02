@@ -51,9 +51,10 @@ public class TipperUser extends ParseObject {
         saveInBackground();
     }
 
-    public void setUuidString() {
+    public UUID setUuidString() {
         UUID uuid = UUID.randomUUID();
         put("uuid", uuid.toString());
+        return uuid;
     }
 
     public ParseRelation<Tip> getFavourites() {

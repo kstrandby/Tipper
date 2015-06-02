@@ -161,22 +161,27 @@ public class CreateTipActivity extends ActionBarActivity {
 
             // otherwise the spinner will contain all the groups the current user is member of
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
-                @Override
-                public void done(final List<Group> list, ParseException e) {
-                    // add a dummy group as well, for being able to create a tip that has no group
-                    ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
-                    dummyQuery.whereEqualTo("uuid", "dummy").getFirstInBackground(new GetCallback<Group>() {
-                        @Override
-                        public void done(Group group, ParseException e) {
-                            if(group != null) list.add(group);
-                            SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(getApplicationContext(), R.layout.simple_spinner_item, list);
-                            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
-                            groupChoice.setAdapter(adapter);
-                        }
-                    });
-                }
-            });
+            if(user != null) {
+                user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+                    @Override
+                    public void done(final List<Group> list, ParseException e) {
+                        // add a dummy group as well, for being able to create a tip that has no group
+                        ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
+                        dummyQuery.whereEqualTo("uuid", "dummy").getFirstInBackground(new GetCallback<Group>() {
+                            @Override
+                            public void done(Group group, ParseException e) {
+                                if(group != null) list.add(group);
+                                SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(getApplicationContext(), R.layout.simple_spinner_item, list);
+                                adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+                                groupChoice.setAdapter(adapter);
+                            }
+                        });
+                    }
+                });
+            } else {
+                Log.d(ACTIVITY_ID, "User object is null");
+            }
+
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity provided!");
         }
@@ -423,7 +428,7 @@ public class CreateTipActivity extends ActionBarActivity {
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.logout){
+        } else if (id == R.id.main_menu_logout){
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
