@@ -20,12 +20,12 @@ import kstr14.tipper.R;
 /**
  * Created by Kristine on 02-06-2015.
  */
-public class TestScenario2 extends ActivityInstrumentationTestCase2<LoginActivity> {
+public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivity> {
 
     private static final int TIME_OUT = 2000;
     private Solo solo;
 
-    public TestScenario2() {
+    public TestScenario3() {
         super(LoginActivity.class);
     }
 
