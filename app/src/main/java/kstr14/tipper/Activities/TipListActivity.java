@@ -16,6 +16,9 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.plus.Plus;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -32,7 +35,7 @@ import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
 
-public class TipListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class TipListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String ACTIVITY_ID = "TipListActivity";
     private static final int NUMBER_OF_CATEGORIES = 3;
@@ -51,12 +54,21 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
     private Intent intent;
     private TipperUser user;
 
+    private GoogleApiClient googleApiClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        googleApiClient =  new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .build();
+        googleApiClient.connect();
 
         user = ((Application)getApplicationContext()).getCurrentUser();
 
@@ -277,10 +289,21 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             startActivity(intent);
             return true;
         } else if (id == R.id.main_menu_logout){
+            if(user.isGoogleUser()) {
+                Log.d(ACTIVITY_ID, "Google user signing out.....");
+                if(googleApiClient.isConnected()) {
+                    Plus.AccountApi.clearDefaultAccount(googleApiClient);
+                    googleApiClient.disconnect();
+                    Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                } else {
+                    Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
+                }
+            }
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
+                return false;
             }
             ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -369,5 +392,21 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             }
         }
         return false;
+    }
+
+    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 }

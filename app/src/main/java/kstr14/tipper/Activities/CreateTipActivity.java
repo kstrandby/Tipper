@@ -25,7 +25,10 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.plus.Plus;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
@@ -50,7 +53,7 @@ import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
-public class CreateTipActivity extends ActionBarActivity {
+public class CreateTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private final static String ACTIVITY_ID = "CreateTipActivity";
 
@@ -82,7 +85,8 @@ public class CreateTipActivity extends ActionBarActivity {
 
     private String sourceActivity;
     private Tip tip;
-    private Uri outputFileUri;
+
+    private GoogleApiClient googleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +94,13 @@ public class CreateTipActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_tip);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        googleApiClient =  new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .build();
+        googleApiClient.connect();
 
         // set current date to correct timezone
         TimeZone timeZone = TimeZone.getTimeZone("Australia/Melbourne");
@@ -429,10 +440,22 @@ public class CreateTipActivity extends ActionBarActivity {
             startActivity(intent);
             return true;
         } else if (id == R.id.main_menu_logout){
+            TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
+            if(user.isGoogleUser()) {
+                Log.d(ACTIVITY_ID, "Google user signing out.....");
+                if(googleApiClient.isConnected()) {
+                    Plus.AccountApi.clearDefaultAccount(googleApiClient);
+                    googleApiClient.disconnect();
+                    Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                } else {
+                    Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
+                }
+            }
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
+                return false;
             }
             ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -530,5 +553,21 @@ public class CreateTipActivity extends ActionBarActivity {
                 Toast.makeText(getApplicationContext(), "Location picking failed.", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 }

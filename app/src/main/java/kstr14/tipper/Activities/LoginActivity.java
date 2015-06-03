@@ -49,7 +49,6 @@ public class LoginActivity extends ActionBarActivity {
     private Application app;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -58,6 +57,8 @@ public class LoginActivity extends ActionBarActivity {
         getSupportActionBar().hide();
 
         app = ((Application)getApplicationContext());
+
+
 
         // check for cached user, and go directly to MainActivity if found
         ParseQuery<ParseObject> query = ParseQuery.getQuery("TipperUser");
@@ -82,13 +83,24 @@ public class LoginActivity extends ActionBarActivity {
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.LoginActivity_fragment_container, defaultLoginFragment).commit();
+
     }
+
 
     // Required for making Facebook login work
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == DefaultLoginFragment.GOOGLE_SIGN_IN) {
+            System.out.println("onactivityresult google in activity");
+            DefaultLoginFragment fragment = (DefaultLoginFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.LoginActivity_fragment_container);
+            fragment.onActivityResult(requestCode, resultCode, data);
+        } else {
+
         super.onActivityResult(requestCode, resultCode, data);
         ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
+
+        }
     }
 
     /**
@@ -301,6 +313,9 @@ public class LoginActivity extends ActionBarActivity {
 
     @Override
     public void onBackPressed() {
-
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 }

@@ -21,6 +21,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.plus.Plus;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -35,7 +38,7 @@ import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, OnItemLongClickListener {
+public class MainActivity extends ActionBarActivity implements OnItemClickListener, OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String ACTIVITY_ID = "MainActivity";
     public static final int CREATE_TIP_REQUEST = 1;
@@ -52,10 +55,19 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     private ImageButton otherButton;
     private ProgressDialog progressDialog;
 
+    private GoogleApiClient googleApiClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        googleApiClient =  new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .build();
+        googleApiClient.connect();
 
         String uuid = getIntent().getExtras().getString("uuid");
         System.out.println(uuid);
@@ -153,10 +165,22 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             startActivity(intent);
             return true;
         } else if (id == R.id.main_menu_logout){
+            if(user.isGoogleUser()) {
+                Log.e(ACTIVITY_ID, "Google user signing out.....");
+
+                if(googleApiClient.isConnected()) {
+                    Plus.AccountApi.clearDefaultAccount(googleApiClient);
+                    googleApiClient.disconnect();
+                    Log.e(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                } else {
+                    Log.e(ACTIVITY_ID, "googleApiClient was disconnected");
+                }
+            }
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
+                return false;
             }
             ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
@@ -294,5 +318,21 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         } else {
             Log.d(ACTIVITY_ID, "User is anonymous");
         }
+    }
+
+    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 }

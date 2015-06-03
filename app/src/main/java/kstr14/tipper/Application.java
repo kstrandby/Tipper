@@ -32,7 +32,6 @@ public class Application extends android.app.Application {
         // initalize facebook
         ParseFacebookUtils.initialize(getApplicationContext());
 
-
     }
 
     public TipperUser getCurrentUser() {

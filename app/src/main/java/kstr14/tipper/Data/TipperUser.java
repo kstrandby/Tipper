@@ -1,10 +1,15 @@
 package kstr14.tipper.Data;
 
+import android.content.Context;
+
 import com.parse.ParseClassName;
+import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
 
 import java.util.UUID;
+
+import kstr14.tipper.Application;
 
 /**
  * Created by Kristine on 17-05-2015.
@@ -57,6 +62,15 @@ public class TipperUser extends ParseObject {
         return uuid;
     }
 
+    /**
+     * method for creating TipperUser using their Google+ ID
+     * as the uuid
+     * @param uuid
+     */
+    public void setUuidString(String uuid) {
+        put("uuid", uuid.toString());
+    }
+
     public ParseRelation<Tip> getFavourites() {
         return getRelation("favourites");
     }
@@ -75,5 +89,22 @@ public class TipperUser extends ParseObject {
         return getString("uuid");
     }
 
+    public void setGoogleUser() {
+        put("google", true);
+    }
 
+    public boolean isGoogleUser() {
+        return getBoolean("google");
+    }
+
+    public boolean logOut(Context context) {
+        try {
+            ((Application)context).getCurrentUser().unpin();
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+        ((Application)context).setCurrentUser(null);
+        return true;
+    }
 }

@@ -91,19 +91,13 @@
                 android:textStyle="bold"
                 android:textColor="#ffffffff" />
 
-            <Button
+            <com.google.android.gms.common.SignInButton
+                android:id="@+id/google_sign_in_button"
                 android:layout_width="310dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/facebook_login"
-                android:background="@drawable/facebook_login_button_background"
-                android:paddingLeft="16dp"
-                android:paddingRight="24dp"
-                android:drawableLeft="@drawable/com_facebook_button_icon"
-                android:text="@string/facebook_login_button_label"
                 android:layout_gravity="center_horizontal"
-                android:textColor="#ffffffff"
                 android:layout_marginTop="50dp"
-                android:onClick="facebookLoginPressed" />
+                android:layout_weight="0.06" />
 
 
 
