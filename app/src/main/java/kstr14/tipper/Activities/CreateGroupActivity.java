@@ -42,7 +42,6 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
     private EditText groupNameEditText;
     private EditText groupDescriptionEditText;
     private RadioButton closedGroupRadioButton;
-    private RadioButton openGroupRadioButton;
 
     private GoogleApiClient googleApiClient;
 
@@ -66,7 +65,6 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
         groupNameEditText = (EditText) findViewById(R.id.createGroup_ed_groupName);
         groupDescriptionEditText = (EditText) findViewById(R.id.createGroup_ed_groupDescription);
         closedGroupRadioButton = (RadioButton) findViewById(R.id.createGroup_rb_closedGroup);
-        openGroupRadioButton = (RadioButton) findViewById(R.id.createGroup_rb_openGroup);
     }
 
 
@@ -88,7 +86,7 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -105,9 +103,9 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
                 if(googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
-                    Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                    Log.d(ACTIVITY_ID, "Logged out Google user.");
                 } else {
-                    Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
+                    Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected.");
                 }
             }
             try {
@@ -136,17 +134,17 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
             startActivityForResult(chooserIntent, IMAGE_REQUEST);
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
 
     /**
      * Called when the camera/gallery intent returns
-     * Saved the captured/chosen image to the group, rotating it if needed and compressing
+     * Saves the captured/chosen image to the group, rotating it if needed and compressing
      * it to a lower quality for optimal storage
      * @param requestCode
      * @param resultCode
@@ -182,11 +180,22 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
 
                     // Create the ParseFile and save it to the tip
                     ParseFile file = new ParseFile("image.jpeg", image);
-                    file.saveInBackground();
+                    file.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e != null) {
+                                Toast.makeText(getApplicationContext(), "Error saving image to group.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Image saved to group.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
 
-                    group = new Group();
+                    if( group == null ) {
+                        group = new Group();
+                    }
+
                     group.setImage(file);
-                    Toast.makeText(getApplicationContext(), "Image saved to group.", Toast.LENGTH_SHORT).show();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -201,13 +210,18 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
     }
 
 
+    /**
+     * Called when user clicks CREATE button
+     * Creates the group with the given attributes
+     * and saves it to the database
+     * @param view
+     */
     public void createGroup(View view) {
         String name = groupNameEditText.getText().toString();
         String description = groupDescriptionEditText.getText().toString();
         if(group == null) {
             group = new Group();
         }
-
 
         // validate input
         if(name.length() == 0) {
@@ -223,28 +237,49 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
                 group.setClosed(false);
             }
             final TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
-            group.addUser(user);
-            group.setCreator(user);
-            group.setUuidString();
-            group.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-                        // and now relate the group to the user as well
-                        user.addGroup(group);
+            if (user != null) {
+                group.addUser(user);
+                group.setCreator(user);
+                group.setUuidString();
+                group.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(ParseException e) {
+                        if (e == null) {
+                            // and now relate the group to the user as well
+                            user.addGroup(group);
 
-                        // and start intent to MyGroupsActivity
-                        Intent intent = new Intent(getApplicationContext(), MyGroupsActivity.class);
-                        intent.putExtra("source", ACTIVITY_ID);
-                        setResult(RESULT_OK, intent);
-                        finish();
-                    } else {
-                        e.printStackTrace();
-                        Toast.makeText(getApplicationContext(), "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            // and start intent to MyGroupsActivity
+                            Intent intent = new Intent(getApplicationContext(), MyGroupsActivity.class);
+                            intent.putExtra("source", ACTIVITY_ID);
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        } else {
+                            Log.e(ACTIVITY_ID, e.getStackTrace().toString());
+                            Toast.makeText(getApplicationContext(), "Error saving the group, please check the internet connection and try again.", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                Log.e(ACTIVITY_ID, "User object is null");
+            }
+
         }
+    }
+
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    private Intent getParentActivity() {
+        Intent intent = new Intent(this, MyGroupsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return intent;
     }
 
 

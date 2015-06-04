@@ -1,6 +1,7 @@
 package kstr14.tipper.Activities;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -33,6 +34,7 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ErrorHandler;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
@@ -45,12 +47,11 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
     private ParseImageView imageView;
     private ListView listView;
     private TextView descriptionView;
+    private ProgressDialog progressDialog;
+
     private Group group;
     private TipperUser currentUser;
-
     private TipBaseAdapter adapter;
-
-    private boolean member;
 
     private String sourceActivity;
 
@@ -63,155 +64,139 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         setContentView(R.layout.activity_show_group);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        googleApiClient =  new GoogleApiClient.Builder(this)
+        progressDialog = ProgressDialog.show(this, "Loading", "Please wait while Group is being loaded...");
+
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
                 .build();
         googleApiClient.connect();
 
-
         sourceActivity = getIntent().getExtras().getString("source");
-
-        // check if the group we are showing is a group the current user is not member of
-        // or a group the user is member of, to show the correct fragment
-        currentUser = ((Application)getApplicationContext()).getCurrentUser();
-        String groupID = getIntent().getExtras().getString("ID");
-        ParseQuery<Group> query = currentUser.getGroups().getQuery();
-        query.whereEqualTo("uuid", groupID);
-        query.findInBackground(new FindCallback<Group>() {
-            @Override
-            public void done(List<Group> list, ParseException e) {
-                if(e == null && list != null) {
-                    if (list.isEmpty()) {
-                        // user not member of group - show fragment with Join button
-                        GroupNotMemberFragment notMemberFragment = new GroupNotMemberFragment();
-                        getFragmentManager().beginTransaction()
-                                .add(R.id.ShowGroupActivity_fragment_container, notMemberFragment).commit();
-                        member = false;
-                        MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
-                        addItem.setVisible(false);
-                    } else {
-                        // user member of group - show fragment with Leave button
-                        GroupMemberFragment memberFragment = new GroupMemberFragment();
-                        getFragmentManager().beginTransaction()
-                                .add(R.id.ShowGroupActivity_fragment_container, memberFragment).commit();
-                        group = list.get(0);
-                        member = true;
-                    }
-                } else {
-                    Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
-                }
-            }
-        });
-
 
         // initialize UI elements
         imageView = (ParseImageView) findViewById(R.id.showGroup_iv_groupImage);
         listView = (ListView) findViewById(R.id.showGroup_lv_groups);
         descriptionView = (TextView) findViewById(R.id.showGroup_tv_description);
 
-        if(group == null) {
+        currentUser = ((Application) getApplicationContext()).getCurrentUser();
+        String groupID = getIntent().getExtras().getString("ID");
 
-            // fetch group object from database
-            ParseQuery<Group> groupQuery = ParseQuery.getQuery("Group");
-            groupQuery.whereEqualTo("uuid", groupID);
-            groupQuery.getFirstInBackground(new GetCallback<Group>() {
-                @Override
-                public void done(Group object, ParseException e) {
-                    if (e == null && object != null) {
-                        group = object;
-
-                        // set actionBar title to name of group
-                        getSupportActionBar().setTitle(group.getName());
-                        descriptionView.setText(group.getDescription());
-
-                        // set default image if no image exist in database
-                        ParseFile image = group.getImage();
-                        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_group_big, 256, 256);
-                        if(image == null) {
-                            imageView.setImageBitmap(img);
-                        } else {
-                            imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
-                            imageView.setParseFile(image);
-                            imageView.loadInBackground();
-                        }
-
-                        // fetch tips of group
-                        updateTipList();
-                        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                // grab the selected tip and start intent for show tip activity
-                                Tip tip = (Tip) listView.getAdapter().getItem(position);
-                                Intent intent = new Intent(ShowGroupActivity.this, ShowTipActivity.class);
-                                intent.putExtra("source", ACTIVITY_ID);
-                                intent.putExtra("ID", tip.getUuidString());
-                                startActivity(intent);
-                            }
-                        });
-                        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                            @Override
-                            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                                // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
-                                final Tip tip = (Tip) listView.getAdapter().getItem(position);
-
-                                if (tip.getCreator().equals(currentUser) || group.getCreator().equals(currentUser)) {
-                                    // create dialog for deletion of item
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupActivity.this);
-                                    builder.setTitle("Remove tip?");
-                                    builder.setMessage("Are you sure you wish to delete this tip?");
-                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            // remove tip from database
-
-                                            tip.deleteInBackground();
-                                            updateTipList();
-                                            Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
-                                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.cancel();
-                                        }
-                                    });
-                                    builder.create().show();
-                                    return true;
+        // fetch group object from database
+        ParseQuery<Group> groupQuery = ParseQuery.getQuery("Group");
+        groupQuery.whereEqualTo("uuid", groupID);
+        groupQuery.getFirstInBackground(new GetCallback<Group>() {
+            @Override
+            public void done(Group object, ParseException e) {
+                progressDialog.dismiss();
+                if (e == null && object != null) {
+                    // check if user is member of group to show correct button (Leave/Join)
+                    group = object;
+                    group.getUsers().getQuery().findInBackground(new FindCallback<TipperUser>() {
+                        @Override
+                        public void done(List<TipperUser> list, ParseException e) {
+                            if (e == null && list != null) {
+                                if (list.contains(currentUser)) {
+                                    // user member of group - show fragment with Leave button
+                                    GroupMemberFragment memberFragment = new GroupMemberFragment();
+                                    getFragmentManager().beginTransaction()
+                                            .add(R.id.ShowGroupActivity_fragment_container, memberFragment).commit();
+                                    // and show the add tip button on actionbar
+                                    MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
+                                    addItem.setVisible(true);
                                 } else {
-                                    Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
-                                    return true;
+                                    // user not member of group - show fragment with Join button
+                                    GroupNotMemberFragment notMemberFragment = new GroupNotMemberFragment();
+                                    getFragmentManager().beginTransaction()
+                                            .add(R.id.ShowGroupActivity_fragment_container, notMemberFragment).commit();
+                                    // and hide the add tip button on actionbar
+                                    MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
+                                    addItem.setVisible(false);
+                                    // hide list of tips if group is closed
+                                    if (group.isClosed()) listView.setVisibility(View.INVISIBLE);
                                 }
+                            } else {
+                                Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                                ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
                             }
-                        });
-
-                        // hide the tips, if the current user is not a member and the group is closed
-                        if (!member && group.isClosed()) {
-                            listView.setVisibility(View.INVISIBLE);
                         }
+                    });
 
+                    group = object;
+
+                    // set actionBar title to name of group
+                    getSupportActionBar().setTitle(group.getName());
+                    descriptionView.setText(group.getDescription());
+
+                    // set default image if no image exist in database
+                    ParseFile image = group.getImage();
+                    Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.ic_action_group_big, 256, 256);
+                    if (image == null) {
+                        imageView.setImageBitmap(img);
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
+                        imageView.setParseFile(image);
+                        imageView.loadInBackground();
                     }
-                }
-            });
-        } else {
-            // set actionBar title to name of group
-            getSupportActionBar().setTitle(group.getName());
-            descriptionView.setText(group.getDescription());
 
-            // fetch tips of group and set up adapter and listview
-            group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
-                @Override
-                public void done(List<Tip> list, ParseException e) {
-                    adapter = new TipBaseAdapter(getApplicationContext(), list);
-                    listView.setAdapter(adapter);
-                }
-            });
+                    // fetch tips of group
+                    updateTipList();
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            // grab the selected tip and start intent for show tip activity
+                            Tip tip = (Tip) listView.getAdapter().getItem(position);
+                            Intent intent = new Intent(ShowGroupActivity.this, ShowTipActivity.class);
+                            intent.putExtra("source", ACTIVITY_ID);
+                            intent.putExtra("ID", tip.getUuidString());
+                            startActivity(intent);
+                        }
+                    });
+                    listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                        @Override
+                        public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                            // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
+                            final Tip tip = (Tip) listView.getAdapter().getItem(position);
 
-        }
+                            if (tip.getCreator().equals(currentUser) || group.getCreator().equals(currentUser)) {
+                                // create dialog for deletion of item
+                                AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupActivity.this);
+                                builder.setTitle("Remove tip?");
+                                builder.setMessage("Are you sure you wish to delete this tip?");
+                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // remove tip from database
+
+                                        tip.deleteInBackground();
+                                        updateTipList();
+                                        Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+                                builder.create().show();
+                                return true;
+                            } else {
+                                Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
+                                return true;
+                            }
+                        }
+                    });
+                } else {
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                    ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
+                }
+            }
+        });
+
     }
+
     public void joinGroup(View view) {
         group.addUser(currentUser);
         group.saveInBackground();
@@ -221,7 +206,6 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         GroupMemberFragment memberFragment = new GroupMemberFragment();
         getFragmentManager().beginTransaction()
                 .replace(R.id.ShowGroupActivity_fragment_container, memberFragment).commit();
-        member = true;
         // set add button on action bar visible and list of tips
         MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
         addItem.setVisible(true);
@@ -237,9 +221,8 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         GroupNotMemberFragment notMemberFragment = new GroupNotMemberFragment();
         getFragmentManager().beginTransaction()
                 .replace(R.id.ShowGroupActivity_fragment_container, notMemberFragment).commit();
-        member = false;
         // check if the group is closed, so we need to hide the tips now the user is not member
-        if(group.isClosed()) {
+        if (group.isClosed()) {
             listView.setVisibility(View.INVISIBLE);
         }
         MenuItem addItem = menu.findItem(R.id.action_add_tip_to_group);
@@ -251,11 +234,14 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
             @Override
             public void done(List<Tip> list, ParseException e) {
-                System.out.println("Found " + list.size() + " tips");
-                adapter = new TipBaseAdapter(getApplicationContext(), list);
-                listView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-                System.out.println("Done with setting adapter");
+                if (e == null && list != null) {
+                    adapter = new TipBaseAdapter(getApplicationContext(), list);
+                    listView.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                    ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
+                }
             }
         });
     }
@@ -272,10 +258,10 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
 
     private Intent getParentActivity() {
         Intent intent = null;
-        if (sourceActivity.equals("TipListActivity")) {
-            intent = new Intent(this, TipListActivity.class);
+        if (sourceActivity.equals("ListActivity")) {
+            intent = new Intent(this, ListActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if(sourceActivity.equals("MyGroupsActivity")) {
+        } else if (sourceActivity.equals("MyGroupsActivity")) {
             intent = new Intent(this, MyGroupsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         } else {
@@ -311,7 +297,7 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -321,11 +307,11 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.main_menu_logout){
-            TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
-            if(user.isGoogleUser()) {
+        } else if (id == R.id.main_menu_logout) {
+            TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+            if (user.isGoogleUser()) {
                 Log.d(ACTIVITY_ID, "Google user signing out.....");
-                if(googleApiClient.isConnected()) {
+                if (googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
                     Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
@@ -334,17 +320,18 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
                 }
             }
             try {
-                ((Application)getApplicationContext()).getCurrentUser().unpin();
+                ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
                 return false;
             }
-            ((Application)getApplicationContext()).setCurrentUser(null);
+            ((Application) getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
@@ -353,14 +340,16 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if(requestCode == MainActivity.CREATE_TIP_REQUEST) {
-            if(resultCode == RESULT_OK) {
+        if (requestCode == MainActivity.CREATE_TIP_REQUEST) {
+            if (resultCode == RESULT_OK) {
                 updateTipList();
             }
         }
     }
 
-    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    /**
+     * methods below required only for use of GoogleApiClient, which is necessary for logout **
+     */
     @Override
     public void onConnected(Bundle bundle) {
 

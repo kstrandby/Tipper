@@ -8,9 +8,9 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.robotium.solo.Solo;
 
+import kstr14.tipper.Activities.ListActivity;
 import kstr14.tipper.Activities.MainActivity;
 import kstr14.tipper.Activities.ShowTipActivity;
-import kstr14.tipper.Activities.TipListActivity;
 import kstr14.tipper.Data.TipperUser;
 
 /**
@@ -58,7 +58,7 @@ public class MainActivityTests extends ActivityInstrumentationTestCase2<MainActi
         assertNotNull(foodButton);
 
         solo.clickOnView(foodButton);
-        solo.assertCurrentActivity("Wrong activity", TipListActivity.class);
+        solo.assertCurrentActivity("Wrong activity", ListActivity.class);
 
         // go back and test click on drinksButton results in correct activity
         solo.goBack();
@@ -66,7 +66,7 @@ public class MainActivityTests extends ActivityInstrumentationTestCase2<MainActi
         assertNotNull(drinksButton);
 
         solo.clickOnView(drinksButton);
-        solo.assertCurrentActivity("Wrong activity", TipListActivity.class);
+        solo.assertCurrentActivity("Wrong activity", ListActivity.class);
 
         // go back and test click on otherButton results in correct activity
         solo.goBack();
@@ -74,7 +74,7 @@ public class MainActivityTests extends ActivityInstrumentationTestCase2<MainActi
         assertNotNull(otherButton);
 
         solo.clickOnView(otherButton);
-        solo.assertCurrentActivity("Wrong activity", TipListActivity.class);
+        solo.assertCurrentActivity("Wrong activity", ListActivity.class);
     }
 
     public void testListView() throws ParseException {

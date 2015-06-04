@@ -40,13 +40,10 @@ import kstr14.tipper.R;
 
 public class MainActivity extends ActionBarActivity implements OnItemClickListener, OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "MainActivity";
+    public static final String ACTIVITY_ID = "MainActivity";
     public static final int CREATE_TIP_REQUEST = 1;
 
-    private boolean exit = false;
-
-    private TipperUser user;
-
+    // UI elements
     private ListView listView;
     private List<Tip> tips;
     private Adapter adapter;
@@ -54,6 +51,10 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     private ImageButton drinksButton;
     private ImageButton otherButton;
     private ProgressDialog progressDialog;
+
+    private boolean exit = false; // keep track of back button clicks
+
+    private TipperUser user;
 
     private GoogleApiClient googleApiClient;
 
@@ -69,19 +70,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
                 .build();
         googleApiClient.connect();
 
-        String uuid = getIntent().getExtras().getString("uuid");
-        System.out.println(uuid);
-        ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
-        query.whereEqualTo("uuid", uuid);
-        try {
-            user = query.getFirst();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        if(user == null) {
-            System.out.println("user is still null");
-            setUser(((Application)getApplicationContext()).getCurrentUser());
-        }
+        user = ((Application)getApplicationContext()).getCurrentUser();
 
         // initialize UI elements
         listView = (ListView) findViewById(R.id.main_lv_tips);
@@ -144,7 +133,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -188,6 +177,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
@@ -249,7 +239,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     }
 
     public void foodCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("context", "category");
         intent.putExtra("category", "Food");
@@ -257,7 +247,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     }
 
     public void drinksCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("context", "category");
         intent.putExtra("category", "Drinks");
@@ -265,7 +255,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     }
 
     public void otherCategoryClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+        Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("context", "category");
         intent.putExtra("category", "Other");
@@ -314,8 +304,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         }
     }
 
+    /**
+     * Sets
+     * @param currentUser
+     */
     public void setUser(TipperUser currentUser) {
-        // set current user
         if(user != null) {
             user = currentUser;
             Log.d(ACTIVITY_ID, user.getUsername() + " logged in");

@@ -49,6 +49,7 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ErrorHandler;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
@@ -141,57 +142,14 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         arrayAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
         repeatStyle.setAdapter(arrayAdapter);
 
-        // if sourceActivity was ShowGroupActivity, the only group in the list should be that group
+        // if sourceActivity was ShowGroupActivity, the only group in the the group spinner should be that group
         sourceActivity = getIntent().getExtras().getString("source");
         if(sourceActivity != null && sourceActivity.equals("ShowGroupActivity")) {
             String groupID = getIntent().getExtras().getString("groupID");
-            if(groupID != null) {
-                ParseQuery<Group> query = ParseQuery.getQuery("Group");
-                query.whereEqualTo("uuid", groupID);
-                query.findInBackground(new FindCallback<Group>() {
-                    @Override
-                    public void done(List<Group> list, ParseException e) {
-                        if(e == null) {
-                            if(!list.isEmpty()) {
-                                SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(
-                                        getApplicationContext(), R.layout.simple_spinner_item, list);
-                                adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
-                                groupChoice.setAdapter(adapter);
-                            } else {
-                                Log.d(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but could not fetch group by groupID");
-                            }
-                        } else {
-                            Log.d(ACTIVITY_ID, "Parse error: \n" + e.getMessage());
-                        }
-                    }
-                });
-            } else {
-                Log.d(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but groupID is null");
-            }
+            setUpGroupSpinnerOneGroup(groupID);
         } else if(sourceActivity != null && sourceActivity.equals("MainActivity")){
-
             // otherwise the spinner will contain all the groups the current user is member of
-            TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            if(user != null) {
-                user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
-                    @Override
-                    public void done(final List<Group> list, ParseException e) {
-                        // add a dummy group as well, for being able to create a tip that has no group
-                        ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
-                        dummyQuery.whereEqualTo("uuid", "dummy").getFirstInBackground(new GetCallback<Group>() {
-                            @Override
-                            public void done(Group group, ParseException e) {
-                                if(group != null) list.add(group);
-                                SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(getApplicationContext(), R.layout.simple_spinner_item, list);
-                                adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
-                                groupChoice.setAdapter(adapter);
-                            }
-                        });
-                    }
-                });
-            } else {
-                Log.d(ACTIVITY_ID, "User object is null");
-            }
+            setUpGroupSpinnerAllGroups();
 
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity provided!");
@@ -227,6 +185,82 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             }
         });
     }
+
+    /**
+     * Sets the group spinner to all groups the user is a member of
+     */
+    public void setUpGroupSpinnerAllGroups() {
+        TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+        if(user != null) {
+            user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+                @Override
+                public void done(final List<Group> list, ParseException e) {
+                    if (e == null && list != null) {
+                        // add a dummy group as well, for being able to create a tip that has no group
+                        ParseQuery<Group> dummyQuery = ParseQuery.getQuery("Group");
+                        dummyQuery.whereEqualTo("uuid", "dummy").getFirstInBackground(new GetCallback<Group>() {
+                            @Override
+                            public void done(Group group, ParseException e) {
+                                if (e == null) {
+                                    if (group != null) list.add(group);
+                                    SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(getApplicationContext(), R.layout.simple_spinner_item, list);
+                                    adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+                                    groupChoice.setAdapter(adapter);
+                                } else {
+                                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                                    ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
+                                }
+
+                            }
+                        });
+                    } else {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
+                    }
+
+                }
+            });
+        } else {
+            Log.d(ACTIVITY_ID, "User object is null");
+        }
+    }
+
+    /**
+     * Sets up the group spinner with only one group, namely the group
+     * specified by its group uuid
+     * @param groupUuid, the uuid specifying the group
+     */
+    public void setUpGroupSpinnerOneGroup(String groupUuid) {
+        if(groupUuid != null) {
+            ParseQuery<Group> query = ParseQuery.getQuery("Group");
+            query.whereEqualTo("uuid", groupUuid);
+            query.findInBackground(new FindCallback<Group>() {
+                @Override
+                public void done(List<Group> list, ParseException e) {
+                    if (e == null && list != null) {
+                        if (!list.isEmpty()) {
+                            SpinnerGroupAdapter adapter = new SpinnerGroupAdapter(
+                                    getApplicationContext(), R.layout.simple_spinner_item, list);
+                            adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+                            groupChoice.setAdapter(adapter);
+                        } else {
+                            Log.e(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but could not fetch group by groupID");
+                        }
+                    } else {
+                        if(e != null) {
+                            Log.e(ACTIVITY_ID, "Parse error: \n" + e.getStackTrace().toString());
+                            ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
+
+                        }
+                    }
+                }
+            });
+        } else {
+            Log.e(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but groupID is null");
+        }
+    }
+
+
 
     /**
      * Presents a DatePickerDialog to the user, which in turn presents a TimePickerDialog
@@ -358,7 +392,6 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             tip.setUuidString();
             tip.setCreator(((Application) getApplicationContext()).getCurrentUser());
             tip.saveInBackground(new SaveCallback() {
-
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
@@ -372,10 +405,9 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                         setResult(RESULT_OK, intent);
                         finish();
                     } else {
-                        Toast.makeText(getApplicationContext(), "Error saving: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     }
                 }
-
             });
         }
     }
@@ -429,7 +461,7 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -480,6 +512,7 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             startActivityForResult(intent, CHOOSE_LOCATION_REQUEST);
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }

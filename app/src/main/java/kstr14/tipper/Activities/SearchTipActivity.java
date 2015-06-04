@@ -28,7 +28,7 @@ import kstr14.tipper.R;
 
 public class SearchTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "SearchTipActivity";
+    public static final String ACTIVITY_ID = "SearchTipActivity";
 
     private EditText keywordInput;
     private EditText locationInput;
@@ -54,7 +54,6 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
                 .addApi(Plus.API)
                 .build();
         googleApiClient.connect();
-
 
         // initialize UI elements
         keywordInput = (EditText) findViewById(R.id.searchTip_ed_keywords);
@@ -89,6 +88,12 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         return true;
     }
 
+    /**
+     * Called when the SEARCH button is clicked
+     * The intent if filled with search query requirements specified
+     * by the user on the UI (i.e. prices, keyword, etc.)
+     * @param view
+     */
     public void searchTip(View view) {
         // Preparing extras for the Intent
         String keyword = keywordInput.getText().toString();
@@ -99,7 +104,7 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         if(otherCheckBox.isChecked()) categories.add("other");
         String[] categoriesArray = categories.toArray(new String[categories.size()]);
 
-        Intent intent = new Intent(this, TipListActivity.class);
+        Intent intent = new Intent(this, ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("keyword", keyword);
         intent.putExtra("location", location);
@@ -113,14 +118,13 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     public boolean onOptionsItemSelected(MenuItem item) {
         // handling action bar events
         int id = item.getItemId();
-
         if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -154,6 +158,7 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }

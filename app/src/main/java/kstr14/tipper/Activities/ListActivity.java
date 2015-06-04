@@ -1,6 +1,7 @@
 package kstr14.tipper.Activities;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,14 +34,22 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ErrorHandler;
 import kstr14.tipper.R;
 
+/**
+ * This activity is a general list activity used for several purposes, only containing a ListView
+ * The adapter of the ListView depends on what content the activity is used for, and it can be either
+ * a TipBaseAdapter, if we are showing tips (showing Favourites list, search result or category result),
+ * or a GroupBaseAdapter, if we are showing groups (resulting from a group search)
+ */
 
-public class TipListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class ListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "TipListActivity";
+    private static final String ACTIVITY_ID = "ListActivity";
     private static final int NUMBER_OF_CATEGORIES = 3;
 
+    // static constants used to keep track of which type of list we are showing
     private static final int LIST_TYPE_FAVOURITES = 1;
     private static final int LIST_TYPE_CATEGORY = 2;
     private static final int LIST_TYPE_TIPS_SEARCH = 3;
@@ -48,6 +58,9 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
     private int listType;
 
     private ListView listView;
+    private TextView emptyView;
+    private ProgressDialog progressDialog;
+
     private Adapter adapter;
 
     private String sourceActivity;
@@ -70,33 +83,40 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
                 .build();
         googleApiClient.connect();
 
+        progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
+
         user = ((Application)getApplicationContext()).getCurrentUser();
 
         listView = (ListView) findViewById(R.id.searchResult_lv_result);
+        emptyView = (TextView) findViewById(R.id.listActivity_empty_view);
 
-        // check the source of the intent to know how to set up adapter
+        // check the source of the intent to know how to set up the list
         intent = getIntent();
         sourceActivity = intent.getExtras().getString("source");
         String context = intent.getExtras().getString("context");
+
+        // if we are showing favourites list, we do not care which activity we came from, just show the favourites
         if(context != null) {
             if(context.equals("favourites")) {
                 getSupportActionBar().setTitle("Favourites");
                 listType = LIST_TYPE_FAVOURITES;
             }
         }
-        if(sourceActivity.equals("MainActivity")) {
+
+        // otherwise, we have several options
+        if(sourceActivity.equals(MainActivity.ACTIVITY_ID)) {
+            // this is the case when one of the category buttons is clicked on the main screen
             if(context.equals("category")) {
                 String category = intent.getExtras().getString("category");
                 getSupportActionBar().setTitle(category);
                 listType = LIST_TYPE_CATEGORY;
-            } else if (context.equals("favourites")) {
-                getSupportActionBar().setTitle("Favourites");
-                listType = LIST_TYPE_FAVOURITES;
             }
-        } else if(sourceActivity.equals("MyGroupsActivity")) {
+        } else if(sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
+            // this is the case when a search for groups has been made
             getSupportActionBar().setTitle("Search Result");
             listType = LIST_TYPE_GROUPS_SEARCH;
-        } else if (sourceActivity.equals("SearchTipActivity")) {
+        } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
+            // this is the case when a search for tips has been made
             getSupportActionBar().setTitle("Search Result");
             listType = LIST_TYPE_TIPS_SEARCH;
         }
@@ -107,8 +127,15 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
         listView.setOnItemLongClickListener(this);
     }
 
+    /**
+     * Fetches the data and updates the ListView with the data
+     * Uses the listType variable to keep track of what type of
+     * data to fetch and show
+     */
     public void updateList() {
         if (listType == LIST_TYPE_TIPS_SEARCH) {
+            // this case is the result of a search for tips, so a query matching the search restrictions
+            // will be constructed first
             String keyword = getIntent().getExtras().getString("keyword");
             String location = getIntent().getExtras().getString("location");
             String[] categories = getIntent().getExtras().getStringArray("categories");
@@ -130,16 +157,18 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
                 mainQuery.whereLessThanOrEqualTo("price", maxPrice);
                 mainQuery.findInBackground(new FindCallback<Tip>() {
                     public void done(List<Tip> results, ParseException e) {
+                        progressDialog.dismiss();
                         if (e == null) {
                             if(results != null && !results.isEmpty()) {
                                 adapter = new TipBaseAdapter(getApplicationContext(), results);
                                 listView.setAdapter((ListAdapter) adapter);
                             } else {
                                 Log.d(ACTIVITY_ID, "No results for search.");
-                                //TODO set message showing no tips found
+                                emptyView.setText("No results for search.");
                             }
                         } else {
-                            Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                            Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                            ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                         }
                     }
                 });
@@ -155,22 +184,26 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
                 query.findInBackground(new FindCallback<Tip>() {
                     @Override
                     public void done(List<Tip> results, ParseException e) {
+                        progressDialog.dismiss();
                         if (e == null) {
                             if (results != null && !results.isEmpty()) {
                                 adapter = new TipBaseAdapter(getApplicationContext(), results);
                                 listView.setAdapter((ListAdapter) adapter);
                             } else {
                                 Log.d(ACTIVITY_ID, "No results for search.");
-                                //TODO set message showing no tips found
+                                emptyView.setText("No results for search.");
                             }
+                        } else {
+                            Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                            ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                         }
                     }
                 });
             } else {
-                //TODO set message showing no tips found
+                emptyView.setText("No results for search.");
             }
         } else if (listType == LIST_TYPE_GROUPS_SEARCH) {
-            // only option from MyGroupsActivity to TipListActivity is that a search for a group has been
+            // only option from MyGroupsActivity to ListActivity is that a search for a group has been
             // performed, so an Extra has been set on the Intent providing the query of the search
             final String queryString = intent.getExtras().getString("query");
             ParseQuery<Group> query = ParseQuery.getQuery("Group");
@@ -179,38 +212,44 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             query.findInBackground(new FindCallback<Group>() {
                 @Override
                 public void done(List<Group> list, ParseException e) {
+                    progressDialog.dismiss();
                     if (e == null) {
                         if(list != null && !list.isEmpty()) {
                             adapter = new GroupBaseAdapter(getApplicationContext(), list);
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
                             Log.d(ACTIVITY_ID, "No groups exist matching the search query: " + queryString);
+                            emptyView.setText("No groups found matching the query.");
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
             });
         } else if (listType == LIST_TYPE_FAVOURITES) {
+            // just show the user's favourites list in this case
             ParseQuery<Tip> favouritesQuery = user.getFavourites().getQuery();
             favouritesQuery.findInBackground(new FindCallback<Tip>() {
                 @Override
                 public void done(List<Tip> favourites, ParseException e) {
+                    progressDialog.dismiss();
                     if (e == null) {
                         if (favourites != null && !favourites.isEmpty()) {
                             adapter = new TipBaseAdapter(getApplicationContext(), favourites);
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
                             Log.d(ACTIVITY_ID, "User's favourites list is empty.");
-                            //TODO show message on screen
+                            emptyView.setText("Your favourites list is currently empty.");
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
             });
         } else if (listType == LIST_TYPE_CATEGORY) {
-            // this option from MainActivity to TipListActivity corresponds to one of the category buttons
+            // this option from MainActivity to ListActivity corresponds to one of the category buttons
             // was clicked, and an Extra has been set on the Intent to provide which category
             final String category = intent.getExtras().getString("category");
             final ParseQuery<Tip> tipQuery = ParseQuery.getQuery("Tip");
@@ -218,16 +257,18 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             tipQuery.whereEqualTo("category", category);
             tipQuery.findInBackground(new FindCallback<Tip>() {
                 public void done(List<Tip> itemList, ParseException e) {
+                    progressDialog.dismiss();
                     if (e == null) {
                         if (itemList != null && !itemList.isEmpty()) {
                             adapter = new TipBaseAdapter(getApplicationContext(), itemList);
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
                             Log.d(ACTIVITY_ID, "No tips in category: " + category);
-                            //TODO show message on screen
+                            emptyView.setText("No tips in category: " + category);
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
             });
@@ -278,7 +319,7 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -311,6 +352,7 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
@@ -341,7 +383,7 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
             final Group group = (Group) listView.getAdapter().getItem(position);
             if (group.getCreator().equals(user)) {
                 // create dialog for deletion of item
-                AlertDialog.Builder builder = new AlertDialog.Builder(TipListActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
                 builder.setTitle("Remove tip?");
                 builder.setMessage("Are you sure you wish to delete this group?");
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -366,11 +408,12 @@ public class TipListActivity extends ActionBarActivity implements AdapterView.On
                 return true;
             }
         } else if (adapter instanceof  TipBaseAdapter) {
+            //TODO check for favourites list - in this case longclick should just remove tip from favourites list
             // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
             final Tip tip = (Tip) listView.getAdapter().getItem(position);
             if (tip.getCreator().equals(user) || ((Group)tip.getGroup()).getCreator().equals(user)) {
                 // create dialog for deletion of item
-                AlertDialog.Builder builder = new AlertDialog.Builder(TipListActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
                 builder.setTitle("Remove tip?");
                 builder.setMessage("Are you sure you wish to delete this tip?");
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {

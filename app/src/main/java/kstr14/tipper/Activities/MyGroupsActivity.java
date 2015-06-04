@@ -1,6 +1,7 @@
 package kstr14.tipper.Activities;
 
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -37,14 +38,16 @@ import kstr14.tipper.R;
 
 public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "MyGroupsActivity";
+    public static final String ACTIVITY_ID = "MyGroupsActivity";
 
     public static final int CREATE_GROUP_REQUEST = 2;
 
-    private List<Group> myGroups;
     private ListView listView;
+    private ProgressDialog progressDialog;
 
     private List<String> allGroups;
+    private List<Group> myGroups;
+
     private Menu menu;
 
     private String sourceActivity;
@@ -69,15 +72,8 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
 
         listView = (ListView) findViewById(R.id.myGroupsListView);
 
-        TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-
-        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
-            @Override
-            public void done(List<Group> list, ParseException e) {
-                myGroups = list;
-                listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
-            }
-        });
+        progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
+        updateGroupList();
 
         // set click listener for groups in list to move to show group activity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -90,23 +86,6 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                 intent.putExtra("ID", group.getUuidString());
                 startActivity(intent);
 
-            }
-        });
-
-        // no groups to show
-        TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
-        msg.setText("You are currently not a member of any groups.");
-        listView.setEmptyView(msg);
-
-        // load all group names into list to use for searchview
-        ParseQuery<Group> query = ParseQuery.getQuery("Group");
-        query.findInBackground(new FindCallback<Group>() {
-            @Override
-            public void done(List<Group> list, ParseException e) {
-                allGroups = new ArrayList<String>();
-                for (Group group : list) {
-                    allGroups.add(group.getName().trim());
-                }
             }
         });
     }
@@ -123,9 +102,23 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
             @Override
             public void done(List<Group> list, ParseException e) {
-                if (e == null) {
+                progressDialog.dismiss();
+                if (list != null && !list.isEmpty()) {
                     myGroups = list;
                     listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
+                } else if (e == null) {
+                    // means that the user is not member of any groups
+                    TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
+                    msg.setText("You are currently non member of any groups.");
+                    listView.setEmptyView(msg);
+                    Log.d(ACTIVITY_ID, "Did not find any groups.");
+                } else if (e != null) {
+                    // means connection error
+                    TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
+                    msg.setText("Connection error.\n" +
+                            "Please make sure phone is connected to the internet.");
+                    listView.setEmptyView(msg);
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
                 } else {
                     e.printStackTrace();
                 }
@@ -133,26 +126,27 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
             }
         });
 
-        // update all group list (to update SearchView suggestions)
+        // load all group names into list to use for searchview
         ParseQuery<Group> query = ParseQuery.getQuery("Group");
         query.whereNotEqualTo("uuid", "dummy");
         query.findInBackground(new FindCallback<Group>() {
             @Override
             public void done(List<Group> list, ParseException e) {
-                if (e == null) {
-                    List<String> newAllGroups = new ArrayList<String>();
-                    for(Group group : list) {
-                        if(!group.getUuidString().equals("dummy")) {
-                            newAllGroups.add(group.getName());
+                if (list != null && !list.isEmpty()) {
+                    if (e == null) {
+                        allGroups = new ArrayList<String>();
+                        for (Group group : list) {
+                            allGroups.add(group.getName().trim());
                         }
+                    } else {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
                     }
-                    allGroups = newAllGroups;
                 } else {
-                    Log.d("item", "Error: " + e.getMessage());
+                    Log.e(ACTIVITY_ID, "Could not fetch any groups for suggestion list.");
                 }
+
             }
         });
-
     }
 
 
@@ -174,7 +168,7 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
 
                 @Override
                 public boolean onQueryTextSubmit(String s) {
-                    Intent intent = new Intent(getApplicationContext(), TipListActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), ListActivity.class);
                     intent.putExtra("source", ACTIVITY_ID);
                     intent.putExtra("query", s);
                     startActivity(intent);
@@ -187,7 +181,6 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                     return true;
                 }
             });
-
 
             searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
 
@@ -260,8 +253,8 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         } else if (sourceActivity.equals("MyGroupsActivity")) {
             intent = new Intent(this, MyGroupsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("TipListActivity")) {
-            intent = new Intent(this, TipListActivity.class);
+        } else if (sourceActivity.equals("ListActivity")) {
+            intent = new Intent(this, ListActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         } else if (sourceActivity.equals("SearchTipActivity")) {
             intent = new Intent(this, SearchTipActivity.class);
@@ -284,7 +277,7 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         int id = item.getItemId();
 
         if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -323,6 +316,7 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }

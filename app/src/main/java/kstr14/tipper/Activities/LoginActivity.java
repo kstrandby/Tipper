@@ -36,6 +36,8 @@ import kstr14.tipper.R;
 
 public class LoginActivity extends ActionBarActivity {
 
+    private static final String ACTIVITY_ID = "LoginActivity";
+
     // UI elements for default login fragment
     private EditText usernameDefaultLogin;
     private EditText passwordDefaultLogin;
@@ -58,28 +60,24 @@ public class LoginActivity extends ActionBarActivity {
 
         app = ((Application)getApplicationContext());
 
-
-
         // check for cached user, and go directly to MainActivity if found
         ParseQuery<ParseObject> query = ParseQuery.getQuery("TipperUser");
         try {
             TipperUser user = (TipperUser) query.fromLocalDatastore().getFirst();
             if (user != null) {
-                System.out.println("Found cached user: " + user.getUsername());
+                Log.d(ACTIVITY_ID, "Found cached user: " + user.getUsername());
                 app.setCurrentUser(user);
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.putExtra("uuid", user.getUuidString());
-                System.out.println(user.getUuidString());
                 startActivity(intent);
             } else {
-                System.out.println("No cached user found.");
+                Log.d(ACTIVITY_ID, "No cached user found.");
             }
 
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        // otherwise set fragment to the default login screen
+        // set fragment to the default login screen
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.LoginActivity_fragment_container, defaultLoginFragment).commit();
@@ -87,11 +85,10 @@ public class LoginActivity extends ActionBarActivity {
     }
 
 
-    // Required for making Facebook login work
+    // Required for making Facebook and Google login work
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == DefaultLoginFragment.GOOGLE_SIGN_IN) {
-            System.out.println("onactivityresult google in activity");
             DefaultLoginFragment fragment = (DefaultLoginFragment) getSupportFragmentManager()
                     .findFragmentById(R.id.LoginActivity_fragment_container);
             fragment.onActivityResult(requestCode, resultCode, data);
@@ -145,7 +142,6 @@ public class LoginActivity extends ActionBarActivity {
                         app.setCurrentUser(user);
                         user.pinInBackground();
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        intent.putExtra("uuid", user.getUuidString());
                         startActivity(intent);
                     } else {
                         Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
@@ -163,7 +159,7 @@ public class LoginActivity extends ActionBarActivity {
      * @param view
      */
     public void signupPressed(View view) {
-        // UI elements for sign up fragment
+        // fetch the values
         usernameSignup = (EditText) findViewById(R.id.usernameSignupFragment);
         emailSignup = (EditText) findViewById(R.id.emailSignupFragment);
         passwordSignup = (EditText) findViewById(R.id.passwordSignupFragment);
@@ -184,7 +180,7 @@ public class LoginActivity extends ActionBarActivity {
         } else if (!passwordLongEnough(password1)) {
             Toast.makeText(getApplicationContext(), "Password too short - must be minimum 8 characters.", Toast.LENGTH_SHORT).show();
         } else try {
-            if (!emailAlreadyExists(email)) {
+            if (emailAlreadyExists(email)) {
                 Toast.makeText(getApplicationContext(), "Account already exists with this email.", Toast.LENGTH_SHORT).show();
             } else if (!validateEmail(email)) {
                 Toast.makeText(getApplicationContext(), "Please enter a valid email.", Toast.LENGTH_SHORT).show();
@@ -192,6 +188,8 @@ public class LoginActivity extends ActionBarActivity {
                 if (!usernameAvailable(username)) {
                     Toast.makeText(getApplicationContext(), "Sorry, username already taken.", Toast.LENGTH_SHORT).show();
                 } else {
+
+                    // setup a user object with the given attributes, save and enter the app
                     final TipperUser user = new TipperUser();
                     user.setUsername(username);
 
@@ -204,7 +202,6 @@ public class LoginActivity extends ActionBarActivity {
                     app.setCurrentUser(user);
                     user.pinInBackground();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra("uuid", user.getUuidString());
                     startActivity(intent);
                 }
             } catch (ParseException e) {
@@ -213,11 +210,6 @@ public class LoginActivity extends ActionBarActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean passwordLongEnough(String password1) {
-        if(password1.length() < 8) return false;
-        else return true;
     }
 
 
@@ -243,10 +235,20 @@ public class LoginActivity extends ActionBarActivity {
     }
 
     /**
+     * Validates that a password is longer than 8 characters
+     * @param password, the password to be validated
+     * @return true if the password is long enough, false otherwise
+     */
+    private boolean passwordLongEnough(String password) {
+        if(password.length() < 8) return false;
+        else return true;
+    }
+
+    /**
      * Validates that two passwords are equal
-     * @param password1
-     * @param password2
-     * @return
+     * @param password1, the first password
+     * @param password2, the second password
+     * @return true  if they are equal, false otherwise
      */
     public boolean validatePassword(String password1, String password2) {
         if(password1.equals(password2)) return true;
@@ -255,8 +257,8 @@ public class LoginActivity extends ActionBarActivity {
 
     /**
      * Validates the structure of an email address
-     * @param email
-     * @return
+     * @param email, the email to be validated
+     * @return true if the structure is correct, false otherwise
      */
     public boolean validateEmail(String email) {
         boolean result = true;
@@ -271,9 +273,10 @@ public class LoginActivity extends ActionBarActivity {
     }
 
     /**
-     * Checks if a username is available
-     * @param username
-     * @return
+     * Checks if a username is available by looking up in the database, if
+     * there already exists an entity with that username
+     * @param username, the username to be checked for availability
+     * @return true if the username is available, false otherwise
      * @throws ParseException
      */
     private boolean usernameAvailable(String username) throws ParseException {
@@ -286,9 +289,10 @@ public class LoginActivity extends ActionBarActivity {
     }
 
     /**
-     * Checks if an account with the given email already exists
-     * @param email
-     * @return
+     * Checks if an account with the given email already exists by looking the email up
+     * in the database
+     * @param email, the email to be checked
+     * @return true if an account already exists with the specified email, false otherwise
      * @throws ParseException
      */
     private boolean emailAlreadyExists(String email) throws ParseException {
@@ -296,8 +300,8 @@ public class LoginActivity extends ActionBarActivity {
         query.whereEqualTo("email", email);
         List<TipperUser> result = query.find();
         if(result.isEmpty()) {
-            return true;
-        } else return false;
+            return false;
+        } else return true;
     }
 
     @Override
@@ -311,6 +315,9 @@ public class LoginActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Exits the app on back button click
+     */
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(Intent.ACTION_MAIN);

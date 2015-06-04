@@ -1,5 +1,6 @@
 package kstr14.tipper.Activities;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -31,6 +32,7 @@ import java.util.Locale;
 import kstr14.tipper.Application;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ErrorHandler;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
@@ -50,7 +52,7 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
     private TextView dateView;
     private TextView locationView;
     private TextView priceView;
-
+    private ProgressDialog progressDialog;
     private String sourceActivity;
 
     private GoogleApiClient googleApiClient;
@@ -62,7 +64,7 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         setContentView(R.layout.activity_show_tip);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        googleApiClient =  new GoogleApiClient.Builder(this)
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
@@ -91,6 +93,9 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
 
         sourceActivity = getIntent().getExtras().getString("source");
 
+        // show progressdialog while downloading Tip data
+        progressDialog = ProgressDialog.show(this, "Loading", "Please wait while Tip is being loaded...");
+
         String ID = getIntent().getExtras().getString("ID");
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
         query.whereEqualTo("uuid", ID);
@@ -98,7 +103,9 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         query.getFirstInBackground(new GetCallback<Tip>() {
             @Override
             public void done(Tip object, ParseException e) {
-                if (e == null) {
+                progressDialog.dismiss();
+                if (e == null && object != null) {
+                    // set up the UI elements with the attributes of the Tip
                     tip = object;
                     String title = tip.getTitle();
                     getSupportActionBar().setTitle(title);
@@ -112,7 +119,7 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                     priceView.setText("$ " + tip.getPrice());
 
                     ParseGeoPoint geoPoint = tip.getLocation();
-                    if(geoPoint == null) {
+                    if (geoPoint == null) {
                         locationView.setText("Location unknown");
                     } else {
                         LatLng latLng = MapsHelper.getLatLngFromParseGeoPoint(geoPoint);
@@ -120,11 +127,10 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                         locationView.setText(address);
                     }
 
-
                     // set default image if no image exist in database
                     ParseFile image = tip.getImage();
                     Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
-                    if(image == null) {
+                    if (image == null) {
                         imageView.setImageBitmap(img);
                     } else {
                         imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
@@ -132,19 +138,28 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                         imageView.loadInBackground();
                     }
                 } else {
-                    e.printStackTrace();
+                    // this case means connection error - show an alertdialog and go back to previous activity when OK clicked
+                    ErrorHandler.showConnectionErrorAlert(ShowTipActivity.this, getParentActivity());
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
                 }
             }
         });
     }
 
+    /**
+     * Creates a nice String representation of the time period of the Tip
+     * Takes into account if the Tip starts and ends at the same day, so only one date is shown and
+     * the time is shown in the format hh:mm - hh:mm
+     *
+     * @return the produced String
+     */
     private String prettyOutputDates() {
         Calendar start = Calendar.getInstance();
         start.setTime(tip.getStartDate());
         Calendar end = Calendar.getInstance();
         end.setTime(tip.getEndDate());
         String output = "";
-        if(start.get(Calendar.YEAR) == end.get(Calendar.YEAR)
+        if (start.get(Calendar.YEAR) == end.get(Calendar.YEAR)
                 && start.get(Calendar.MONTH) == end.get(Calendar.MONTH)
                 && start.get(Calendar.DAY_OF_MONTH) == end.get(Calendar.DAY_OF_MONTH)) {
 
@@ -175,8 +190,15 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         return output;
     }
 
+    /**
+     * Called when upvote button is clicked
+     * Updates the upvotes of the tip in the database and updates the number of
+     * upvotes shown on the screen
+     *
+     * @param view
+     */
     public void upvoteClicked(View view) {
-        if(tip.getCreator().equals(((Application)getApplicationContext()).getCurrentUser())) {
+        if (tip.getCreator().equals(((Application) getApplicationContext()).getCurrentUser())) {
             Toast.makeText(getApplicationContext(), "You cannot upvote your own tip.", Toast.LENGTH_SHORT).show();
         } else {
             int oldVotes = tip.getUpvotes();
@@ -187,8 +209,15 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         }
     }
 
+    /**
+     * Called when downvote button is clicked
+     * Updates the downvotes of the tip in the database and updates the number of
+     * downvotes shown on the screen
+     *
+     * @param view
+     */
     public void downvoteClicked(View view) {
-        if(tip.getCreator().equals(((Application)getApplicationContext()).getCurrentUser())) {
+        if (tip.getCreator().equals(((Application) getApplicationContext()).getCurrentUser())) {
             Toast.makeText(getApplicationContext(), "You cannot downvote your own tip.", Toast.LENGTH_SHORT).show();
         } else {
             int oldVotes = tip.getDownvotes();
@@ -199,11 +228,18 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         }
     }
 
+    /**
+     * Called when the location TextView or icon is clicked
+     * Takes the user to Google Maps, which will show the calculated
+     * route from user's current position to the position of the tip
+     *
+     * @param view
+     */
     public void navigateClicked(View view) {
         ParseGeoPoint geoPoint = tip.getLocation();
-        if(geoPoint != null) {
+        if (geoPoint != null) {
             String url = "http://maps.google.com/maps?daddr=" + geoPoint.getLatitude() + "," + geoPoint.getLongitude();
-            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,  Uri.parse(url));
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
             startActivity(intent);
         } else {
             Toast.makeText(getApplicationContext(), "Cannot navigate to unknown location.", Toast.LENGTH_SHORT).show();
@@ -211,6 +247,12 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
 
     }
 
+    /**
+     * Called when favourites button is clicked.
+     * Adds the tip to the user's list of favourites.
+     *
+     * @param view
+     */
     public void favouritesButtonClicked(View view) {
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
         user.addFavourite(tip);
@@ -218,26 +260,44 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         Toast.makeText(getApplicationContext(), "Tip added to favourites.", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * Used for navigation with back button on actionbar
+     *
+     * @return
+     */
     @Override
     public Intent getSupportParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Used for navigation with back button on actionbar
+     *
+     * @return
+     */
     @Override
     public Intent getParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Used for navigation with back button on actionbar
+     * Specifies which Activity to go back to in which case
+     * Note, in all cases, this back button behaves like the
+     * hardware back button
+     *
+     * @return
+     */
     private Intent getParentActivity() {
         Intent intent = null;
         if (sourceActivity.equals("MainActivity")) {
             intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if(sourceActivity.equals("ShowGroupActivity")) {
+        } else if (sourceActivity.equals("ShowGroupActivity")) {
             intent = new Intent(this, ShowGroupActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if(sourceActivity.equals("TipListActivity")) {
-            intent = new Intent(this, TipListActivity.class);
+        } else if (sourceActivity.equals("ListActivity")) {
+            intent = new Intent(this, ListActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         }
         return intent;
@@ -250,6 +310,13 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         return true;
     }
 
+    /**
+     * Handles clicks on menu items
+     * In all cases where user is sent to another activity, an extra is added to the intent
+     * to keep track of which activity we came from
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -260,7 +327,7 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -270,11 +337,12 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.main_menu_logout){
-            TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
-            if(user.isGoogleUser()) {
+        } else if (id == R.id.main_menu_logout) {
+            TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+            // disconnect from google api if user is google user
+            if (user.isGoogleUser()) {
                 Log.d(ACTIVITY_ID, "Google user signing out.....");
-                if(googleApiClient.isConnected()) {
+                if (googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
                     Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
@@ -283,17 +351,19 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                 }
             }
             try {
-                ((Application)getApplicationContext()).getCurrentUser().unpin();
+                // in all cases, unpin the user from the local datastore
+                ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
                 return false;
             }
-            ((Application)getApplicationContext()).setCurrentUser(null);
+            ((Application) getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
@@ -301,7 +371,9 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         return super.onOptionsItemSelected(item);
     }
 
-    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    /**
+     * methods below required only for use of GoogleApiClient, which is necessary for logout **
+     */
     @Override
     public void onConnected(Bundle bundle) {
 

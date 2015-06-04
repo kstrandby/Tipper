@@ -25,13 +25,12 @@ import kstr14.tipper.R;
 
 public class DefaultLoginFragment extends Fragment implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "DefaultLoginFragment";
+    private static final String ACTIVITY_ID = "LoginActivity";
 
     public static final int GOOGLE_SIGN_IN = 1;
 
     private boolean googleSignInClicked;
     private boolean intentInProgress;
-    private ConnectionResult connectionResult;
 
     private Activity loginActivity;
     private Context context;
@@ -131,7 +130,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 final String name = person.getDisplayName();
                 final String email = Plus.AccountApi.getAccountName(googleApiClient);
                 final String uuid = person.getId();
-                Log.d(TAG, "Google+ login: Name: " + name + ", plusProfile: "
+                Log.d(ACTIVITY_ID, "Google+ login: Name: " + name + ", plusProfile: "
                          + ", email: " + email + ", ID: " + uuid);
 
                 // check if user already exist
@@ -170,7 +169,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 });
 
             } else {
-                Log.e(TAG, "Google Person is null");
+                Log.e(ACTIVITY_ID, "Google Person is null");
             }
         } catch (Exception e) {
             e.printStackTrace();

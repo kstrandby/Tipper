@@ -37,7 +37,7 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
         setContentView(R.layout.activity_about);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        String sourceActivity = getIntent().getExtras().getString("source");
+        sourceActivity = getIntent().getExtras().getString("source");
 
         googleApiClient =  new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -97,8 +97,8 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
         } else if (sourceActivity.equals("ShowTipActivity")) {
             intent = new Intent(this, ShowTipActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("TipListActivity")) {
-            intent = new Intent(this, TipListActivity.class);
+        } else if (sourceActivity.equals("ListActivity")) {
+            intent = new Intent(this, ListActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity specified.");
@@ -126,7 +126,7 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);

@@ -9,11 +9,11 @@ import android.widget.ListView;
 
 import com.robotium.solo.Solo;
 
+import kstr14.tipper.Activities.ListActivity;
 import kstr14.tipper.Activities.LoginActivity;
 import kstr14.tipper.Activities.MainActivity;
 import kstr14.tipper.Activities.SearchTipActivity;
 import kstr14.tipper.Activities.ShowTipActivity;
-import kstr14.tipper.Activities.TipListActivity;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.R;
 
@@ -78,7 +78,7 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         Button searchButton = (Button) solo.getCurrentActivity().findViewById(R.id.searchTip_b_search);
         solo.clickOnView(searchButton);
         solo.sleep(TIME_OUT);
-        solo.assertCurrentActivity("Wrong activity", TipListActivity.class);
+        solo.assertCurrentActivity("Wrong activity", ListActivity.class);
 
         // check that we have search results in ListView and click the first one
         solo.sleep(TIME_OUT);
@@ -95,7 +95,7 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         // go to favourites and check that the tip is there
         solo.clickOnMenuItem("Favourites");
         solo.sleep(TIME_OUT);
-        solo.assertCurrentActivity("Wrong activity", TipListActivity.class);
+        solo.assertCurrentActivity("Wrong activity", ListActivity.class);
         solo.sleep(TIME_OUT*2);
         listView = (ListView) solo.getCurrentActivity().findViewById(R.id.searchResult_lv_result);
         assertNotNull(listView);

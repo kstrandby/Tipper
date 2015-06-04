@@ -92,7 +92,7 @@
             android:label="@string/title_activity_my_profile" >
         </activity>
         <activity
-            android:name=".Activities.TipListActivity"
+            android:name=".Activities.ListActivity"
             android:label="@string/title_activity_search_result" >
         </activity>
         <activity android:name=".Activities.ShowGroupActivity" >

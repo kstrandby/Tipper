@@ -81,8 +81,8 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
         } else if (sourceActivity.equals("MyGroupsActivity")) {
             intent = new Intent(this, MyGroupsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("TipListActivity")) {
-            intent = new Intent(this, TipListActivity.class);
+        } else if (sourceActivity.equals("ListActivity")) {
+            intent = new Intent(this, ListActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         } else if (sourceActivity.equals("SearchTipActivity")) {
             intent = new Intent(this, SearchTipActivity.class);
@@ -117,7 +117,7 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
             startActivity(intent);
             return true;
         } else if (id == R.id.favourites) {
-            Intent intent = new Intent(this, TipListActivity.class);
+            Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
             intent.putExtra("context", "favourites");
             startActivity(intent);
@@ -145,6 +145,7 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
             return true;
         } else if (id == R.id.about) {
             Intent intent = new Intent(this, AboutActivity.class);
+            intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
         }
