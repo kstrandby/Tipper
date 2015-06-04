@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Tipper</string>
 
-    <string name="facebook_app_id">1444872489140228</string>
+    <!-- Activity titles -->
     <string name="title_activity_login">Login</string>
     <string name="title_activity_my_profile">My Profile</string>
     <string name="title_activity_search_result">Search Result</string>
@@ -10,6 +10,10 @@
     <string name="title_activity_create_tip">Create Tip</string>
     <string name="title_activity_search_tip">Search Tip</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_about">About</string>
+
+    <!-- Facebook -->
+    <string name="facebook_app_id">1444872489140228</string>
     <string name="facebook_login_button_label">Login with Facebook</string>
 
     <!-- Toast messages -->
@@ -25,6 +29,7 @@
     <string name="menu_camera">Camera</string>
     <string name="menu_map">Map</string>
     <string name="menu_share">Share</string>
+    <string name="menu_about">About</string>
 
     <!-- EditText hints -->
     <string name="hint_create_group_name">Group name</string>
@@ -78,4 +83,5 @@
     <!-- ContentDescription -->
     <string name="ib_description">ImageButton</string>
     <string name="iv_description">ImageView</string>
+
 </resources>

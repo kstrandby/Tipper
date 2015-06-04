@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="kstr14.tipper.Activities.TipListActivity">
+    tools:context="kstr14.tipper.Activities.AboutActivity">
 
     <!-- items in menu overflow -->
     <item android:id="@+id/profile"
@@ -11,6 +11,4 @@
         android:title="@string/menu_favourites"/>
     <item android:id="@+id/main_menu_logout"
         android:title="@string/menu_log_out"/>
-    <item android:id="@+id/about"
-        android:title="@string/menu_about"/>
 </menu>

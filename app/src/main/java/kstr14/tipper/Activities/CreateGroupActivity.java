@@ -134,6 +134,10 @@ public class CreateGroupActivity extends ActionBarActivity implements GoogleApiC
 
             chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toArray(new Parcelable[intents.size()]));
             startActivityForResult(chooserIntent, IMAGE_REQUEST);
+        } else if (id == R.id.about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

@@ -478,6 +478,10 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         } else if (id == R.id.location) {
             Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
             startActivityForResult(intent, CHOOSE_LOCATION_REQUEST);
+        } else if (id == R.id.about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

@@ -321,6 +321,10 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
+        } else if (id == R.id.about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

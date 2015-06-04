@@ -16,4 +16,6 @@
         android:title="@string/menu_favourites"/>
     <item android:id="@+id/main_menu_logout"
         android:title="@string/menu_log_out"/>
+    <item android:id="@+id/about"
+        android:title="@string/menu_about"/>
 </menu>
