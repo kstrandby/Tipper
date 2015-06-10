@@ -21,7 +21,7 @@ import kstr14.tipper.R;
 
 public class MyProfileActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "MyProfileActivity";
+    public static final String ACTIVITY_ID = "MyProfileActivity";
 
     private TextView usernameView;
     private TextView emailView;
@@ -54,8 +54,8 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
         usernameView = (TextView) findViewById(R.id.myProfile_tv_username);
         emailView = (TextView) findViewById(R.id.myProfile_tv_email);
 
-        usernameView.setText(user.getUsername());
-        emailView.setText(user.getEmail());
+        usernameView.setText(user.getUsername() + "\n");
+        emailView.setText(user.getEmail() + "\n");
     }
     @Override
     public Intent getSupportParentActivityIntent() {

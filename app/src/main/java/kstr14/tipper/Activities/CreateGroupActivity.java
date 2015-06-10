@@ -36,7 +36,7 @@ import kstr14.tipper.R;
 
 public class CreateGroupActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "CreateGroupActivity";
+    public static final String ACTIVITY_ID = "CreateGroupActivity";
     private static final int IMAGE_REQUEST = 100;
 
     private EditText groupNameEditText;

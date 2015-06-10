@@ -40,7 +40,7 @@ import kstr14.tipper.R;
 
 public class ShowGroupActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "ShowGroupActivity";
+    public static final String ACTIVITY_ID = "ShowGroupActivity";
 
     private Menu menu;
 

@@ -56,7 +56,7 @@ import kstr14.tipper.R;
 
 public class CreateTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private final static String ACTIVITY_ID = "CreateTipActivity";
+    public final static String ACTIVITY_ID = "CreateTipActivity";
 
     private static final int CAPTURE_IMAGE_REQUEST = 100;
     private static final int CHOOSE_LOCATION_REQUEST = 200;

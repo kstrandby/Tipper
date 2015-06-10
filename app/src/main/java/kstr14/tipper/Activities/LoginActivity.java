@@ -1,10 +1,14 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,16 +18,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
-import com.parse.LogInCallback;
 import com.parse.ParseException;
-import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import java.util.ArrayList;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.mail.internet.AddressException;
@@ -58,7 +60,22 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
 
-        app = ((Application)getApplicationContext());
+        try {
+            System.out.println("Signature:");
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "com.facebook.samples.loginhowto",
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+
+        } catch (NoSuchAlgorithmException e) {
+
+        }
+        app = ((Application) getApplicationContext());
 
         // check for cached user, and go directly to MainActivity if found
         ParseQuery<ParseObject> query = ParseQuery.getQuery("TipperUser");
@@ -85,24 +102,19 @@ public class LoginActivity extends ActionBarActivity {
     }
 
 
-    // Required for making Facebook and Google login work
+    // Required for Facebook and Google login callbacks
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == DefaultLoginFragment.GOOGLE_SIGN_IN) {
-            DefaultLoginFragment fragment = (DefaultLoginFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.LoginActivity_fragment_container);
-            fragment.onActivityResult(requestCode, resultCode, data);
-        } else {
-
         super.onActivityResult(requestCode, resultCode, data);
-        ParseFacebookUtils.onActivityResult(requestCode, resultCode, data);
-
-        }
+        DefaultLoginFragment fragment = (DefaultLoginFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.LoginActivity_fragment_container);
+        fragment.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
      * Method called when sign up button pressed on the default login fragment
      * Switches the default login fragment with a sign up fragment
+     *
      * @param view
      */
     public void defaultSignUpPressed(View view) {
@@ -120,6 +132,7 @@ public class LoginActivity extends ActionBarActivity {
     /**
      * Method called when login button pressed on the default login fragment
      * Attempts to log in the user, if successful goes to MainActivity
+     *
      * @param view
      */
     public void defaultLoginPressed(View view) {
@@ -156,6 +169,7 @@ public class LoginActivity extends ActionBarActivity {
     /**
      * Method called when sign up button pressed in sign up fragment
      * Attempts to register the user, if successful goes to MainActivity
+     *
      * @param view
      */
     public void signupPressed(View view) {
@@ -171,11 +185,11 @@ public class LoginActivity extends ActionBarActivity {
         String password2 = reenterPasswordSignup.getText().toString();
 
         // validation
-        if(username.length() == 0) {
+        if (username.length() == 0) {
             Toast.makeText(getApplicationContext(), "Please enter a username.", Toast.LENGTH_SHORT).show();
-        } else if(password1.length() == 0) {
+        } else if (password1.length() == 0) {
             Toast.makeText(getApplicationContext(), "Please enter a password.", Toast.LENGTH_SHORT).show();
-        } else if(!validatePassword(password1, password2)) {
+        } else if (!validatePassword(password1, password2)) {
             Toast.makeText(getApplicationContext(), "Passwords do not match, try again.", Toast.LENGTH_SHORT).show();
         } else if (!passwordLongEnough(password1)) {
             Toast.makeText(getApplicationContext(), "Password too short - must be minimum 8 characters.", Toast.LENGTH_SHORT).show();
@@ -198,6 +212,8 @@ public class LoginActivity extends ActionBarActivity {
                     user.setPassword(hashed);
 
                     user.setEmail(email);
+                    user.setGoogleUser(false);
+                    user.setFacebookUser(false);
                     user.save();
                     app.setCurrentUser(user);
                     user.pinInBackground();
@@ -212,7 +228,7 @@ public class LoginActivity extends ActionBarActivity {
         }
     }
 
-
+/*
     public void facebookLoginPressed(View view) {
         List<String> permissions = new ArrayList<String>();
         permissions.add("public_profile");
@@ -233,30 +249,34 @@ public class LoginActivity extends ActionBarActivity {
             }
         });
     }
+*/
 
     /**
      * Validates that a password is longer than 8 characters
+     *
      * @param password, the password to be validated
      * @return true if the password is long enough, false otherwise
      */
     private boolean passwordLongEnough(String password) {
-        if(password.length() < 8) return false;
+        if (password.length() < 8) return false;
         else return true;
     }
 
     /**
      * Validates that two passwords are equal
+     *
      * @param password1, the first password
      * @param password2, the second password
      * @return true  if they are equal, false otherwise
      */
     public boolean validatePassword(String password1, String password2) {
-        if(password1.equals(password2)) return true;
+        if (password1.equals(password2)) return true;
         else return false;
-        }
+    }
 
     /**
      * Validates the structure of an email address
+     *
      * @param email, the email to be validated
      * @return true if the structure is correct, false otherwise
      */
@@ -275,6 +295,7 @@ public class LoginActivity extends ActionBarActivity {
     /**
      * Checks if a username is available by looking up in the database, if
      * there already exists an entity with that username
+     *
      * @param username, the username to be checked for availability
      * @return true if the username is available, false otherwise
      * @throws ParseException
@@ -283,7 +304,7 @@ public class LoginActivity extends ActionBarActivity {
         ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
         query.whereEqualTo("username", username);
         List<TipperUser> result = query.find();
-        if(result.isEmpty()) {
+        if (result.isEmpty()) {
             return true;
         } else return false;
     }
@@ -291,6 +312,7 @@ public class LoginActivity extends ActionBarActivity {
     /**
      * Checks if an account with the given email already exists by looking the email up
      * in the database
+     *
      * @param email, the email to be checked
      * @return true if an account already exists with the specified email, false otherwise
      * @throws ParseException
@@ -299,7 +321,7 @@ public class LoginActivity extends ActionBarActivity {
         ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
         query.whereEqualTo("email", email);
         List<TipperUser> result = query.find();
-        if(result.isEmpty()) {
+        if (result.isEmpty()) {
             return false;
         } else return true;
     }

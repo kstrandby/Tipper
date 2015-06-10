@@ -1,7 +1,6 @@
 package kstr14.tipper;
 
 import com.parse.Parse;
-import com.parse.ParseFacebookUtils;
 import com.parse.ParseObject;
 
 import kstr14.tipper.Data.Category;
@@ -30,7 +29,7 @@ public class Application extends android.app.Application {
         Parse.initialize(this, "arag2jjTvkvqlVVyv4jM41m1Y5uFLcMB3Thz4sAQ", "gPzHogMpGzBVfJmsd7hA8WMWKPcWlZy2py3bMH1x");
 
         // initalize facebook
-        ParseFacebookUtils.initialize(getApplicationContext());
+        //FacebookSdk.sdkInitialize(getApplicationContext());
 
     }
 

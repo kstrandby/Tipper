@@ -46,7 +46,7 @@ import kstr14.tipper.R;
 
 public class ListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "ListActivity";
+    public static final String ACTIVITY_ID = "ListActivity";
     private static final int NUMBER_OF_CATEGORIES = 3;
 
     // static constants used to keep track of which type of list we are showing
@@ -100,26 +100,28 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             if(context.equals("favourites")) {
                 getSupportActionBar().setTitle("Favourites");
                 listType = LIST_TYPE_FAVOURITES;
+            } else {
+                // otherwise, we have several options
+                if(sourceActivity.equals(MainActivity.ACTIVITY_ID)) {
+                    // this is the case when one of the category buttons is clicked on the main screen
+                    if(context.equals("category")) {
+                        String category = intent.getExtras().getString("category");
+                        getSupportActionBar().setTitle(category);
+                        listType = LIST_TYPE_CATEGORY;
+                    }
+                } else if(sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
+                    // this is the case when a search for groups has been made
+                    getSupportActionBar().setTitle("Search Result");
+                    listType = LIST_TYPE_GROUPS_SEARCH;
+                } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
+                    // this is the case when a search for tips has been made
+                    getSupportActionBar().setTitle("Search Result");
+                    listType = LIST_TYPE_TIPS_SEARCH;
+                }
             }
         }
 
-        // otherwise, we have several options
-        if(sourceActivity.equals(MainActivity.ACTIVITY_ID)) {
-            // this is the case when one of the category buttons is clicked on the main screen
-            if(context.equals("category")) {
-                String category = intent.getExtras().getString("category");
-                getSupportActionBar().setTitle(category);
-                listType = LIST_TYPE_CATEGORY;
-            }
-        } else if(sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
-            // this is the case when a search for groups has been made
-            getSupportActionBar().setTitle("Search Result");
-            listType = LIST_TYPE_GROUPS_SEARCH;
-        } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
-            // this is the case when a search for tips has been made
-            getSupportActionBar().setTitle("Search Result");
-            listType = LIST_TYPE_TIPS_SEARCH;
-        }
+
         updateList();
 
         // set click listeners
@@ -164,6 +166,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                                 listView.setAdapter((ListAdapter) adapter);
                             } else {
                                 Log.d(ACTIVITY_ID, "No results for search.");
+                                listView.setVisibility(View.INVISIBLE);
                                 emptyView.setText("No results for search.");
                             }
                         } else {
@@ -191,6 +194,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                                 listView.setAdapter((ListAdapter) adapter);
                             } else {
                                 Log.d(ACTIVITY_ID, "No results for search.");
+                                listView.setVisibility(View.INVISIBLE);
                                 emptyView.setText("No results for search.");
                             }
                         } else {
@@ -203,9 +207,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 emptyView.setText("No results for search.");
             }
         } else if (listType == LIST_TYPE_GROUPS_SEARCH) {
+            final String queryString = intent.getExtras().getString("query");
             // only option from MyGroupsActivity to ListActivity is that a search for a group has been
             // performed, so an Extra has been set on the Intent providing the query of the search
-            final String queryString = intent.getExtras().getString("query");
             ParseQuery<Group> query = ParseQuery.getQuery("Group");
             query.whereContains("lowerCaseName", queryString);
             query.whereNotEqualTo("uuid", "dummy");
@@ -219,6 +223,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
                             Log.d(ACTIVITY_ID, "No groups exist matching the search query: " + queryString);
+                            listView.setVisibility(View.INVISIBLE);
                             emptyView.setText("No groups found matching the query.");
                         }
                     } else {
@@ -238,8 +243,10 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                         if (favourites != null && !favourites.isEmpty()) {
                             adapter = new TipBaseAdapter(getApplicationContext(), favourites);
                             listView.setAdapter((ListAdapter) adapter);
+
                         } else {
                             Log.d(ACTIVITY_ID, "User's favourites list is empty.");
+                            listView.setVisibility(View.INVISIBLE);
                             emptyView.setText("Your favourites list is currently empty.");
                         }
                     } else {
@@ -264,6 +271,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
                             Log.d(ACTIVITY_ID, "No tips in category: " + category);
+                            listView.setVisibility(View.INVISIBLE);
                             emptyView.setText("No tips in category: " + category);
                         }
                     } else {
@@ -287,14 +295,29 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
 
     private Intent getParentActivity() {
         Intent intent = null;
-        if (sourceActivity.equals("MainActivity")) {
+        if (sourceActivity.equals(MainActivity.ACTIVITY_ID)) {
             intent = new Intent(this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("MyGroupsActivity")) {
+        } else if (sourceActivity.equals(CreateTipActivity.ACTIVITY_ID)) {
+            intent = new Intent(this, CreateTipActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if (sourceActivity.equals(CreateGroupActivity.ACTIVITY_ID)) {
+            intent = new Intent(this, CreateGroupActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if (sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
             intent = new Intent(this, MyGroupsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("SearchTipActivity")) {
+        } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
             intent = new Intent(this, SearchTipActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if (sourceActivity.equals(ShowTipActivity.ACTIVITY_ID)) {
+            intent = new Intent(this, ShowTipActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if (sourceActivity.equals(ShowGroupActivity.ACTIVITY_ID)) {
+            intent = new Intent(this, ShowGroupActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        } else if (sourceActivity.equals(MyProfileActivity.ACTIVITY_ID)) {
+            intent = new Intent(this, MyProfileActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity specified.");
@@ -409,20 +432,21 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         } else if (adapter instanceof  TipBaseAdapter) {
             //TODO check for favourites list - in this case longclick should just remove tip from favourites list
-            // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
-            final Tip tip = (Tip) listView.getAdapter().getItem(position);
-            if (tip.getCreator().equals(user) || ((Group)tip.getGroup()).getCreator().equals(user)) {
-                // create dialog for deletion of item
+            if(listType == LIST_TYPE_FAVOURITES) {
+                final Tip tip = (Tip) listView.getAdapter().getItem(position);
                 AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
-                builder.setTitle("Remove tip?");
-                builder.setMessage("Are you sure you wish to delete this tip?");
+                builder.setTitle("Remove tip from favourites?");
+                builder.setMessage("Are you sure you wish to remove this tip from favourities?");
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // remove tip from database
-                        tip.deleteInBackground();
+                        try {
+                            user.removeFavourite(tip);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
                         updateList();
-                        Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), "Tip has been removed from favourites.", Toast.LENGTH_SHORT).show();
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -434,8 +458,34 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 builder.create().show();
                 return true;
             } else {
-                Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
-                return true;
+                // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
+                final Tip tip = (Tip) listView.getAdapter().getItem(position);
+                if (tip.getCreator().equals(user) || ((Group)tip.getGroup()).getCreator().equals(user)) {
+                    // create dialog for deletion of item
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
+                    builder.setTitle("Remove tip?");
+                    builder.setMessage("Are you sure you wish to delete this tip?");
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // remove tip from database
+                            tip.deleteInBackground();
+                            updateList();
+                            Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+                    builder.create().show();
+                    return true;
+                } else {
+                    Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
             }
         }
         return false;

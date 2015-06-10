@@ -60,7 +60,7 @@
 
                 <Button
                     android:layout_width="140dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/b_text_login"
                     android:id="@+id/loginButtonDefaultLoginFragment"
                     android:layout_weight="0.27"
@@ -71,7 +71,7 @@
 
                 <Button
                     android:layout_width="140dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:text="@string/b_text_sigup"
                     android:id="@+id/signUpDefaultLoginFragment"
                     android:layout_weight="0.86"
@@ -94,27 +94,22 @@
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/google_sign_in_button"
                 android:layout_width="310dp"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="50dp"
                 android:layout_weight="0.06" />
 
-
+            <com.facebook.login.widget.LoginButton
+                android:id="@+id/facebook_sign_in_button"
+                android:layout_width="310dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="30dp"
+                android:layout_weight="0.06"/>
 
         </LinearLayout>
 
-
-<!--
-        <Button
-            android:id="@+id/twitter_login"
-            style="@style/ParseLoginUI.Button.ThirdPartyLogin"
-            android:layout_marginTop="@dimen/com_parse_ui_small_vertical_spacing"
-            android:background="@drawable/com_parse_ui_twitter_login_button_background"
-            android:drawableLeft="@drawable/com_parse_ui_twitter_login_logo"
-            android:text="@string/com_parse_ui_twitter_login_button_label"
-            android:visibility="gone" />
-
--->
     </LinearLayout>
 
 </FrameLayout>

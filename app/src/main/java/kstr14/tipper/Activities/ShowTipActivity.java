@@ -39,7 +39,7 @@ import kstr14.tipper.R;
 
 public class ShowTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String ACTIVITY_ID = "ShowTipActivity";
+    public static final String ACTIVITY_ID = "ShowTipActivity";
 
     private Tip tip;
     private ParseImageView imageView;

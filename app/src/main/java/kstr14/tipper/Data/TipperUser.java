@@ -1,6 +1,7 @@
 package kstr14.tipper.Data;
 
 import com.parse.ParseClassName;
+import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
 
@@ -75,21 +76,28 @@ public class TipperUser extends ParseObject {
         saveInBackground();
     }
 
-    public void removeFavourite(Tip tip) {
+    public void removeFavourite(Tip tip) throws ParseException {
         getFavourites().remove(tip);
-        saveInBackground();
+        save();
     }
 
     public String getUuidString() {
         return getString("uuid");
     }
 
-    public void setGoogleUser() {
-        put("google", true);
+    public void setGoogleUser(boolean google) {
+        put("google", google);
     }
 
     public boolean isGoogleUser() {
         return getBoolean("google");
+    }
+
+    public void setFacebookUser(boolean facebook) {
+        put("facebook", facebook);
+    }
+    public boolean isFacebookUser() {
+        return getBoolean("facebook");
     }
 
     @Override

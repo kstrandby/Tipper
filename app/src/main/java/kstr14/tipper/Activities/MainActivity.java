@@ -4,9 +4,13 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +25,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
@@ -28,6 +34,8 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import kstr14.tipper.Adapters.TipBaseAdapter;
@@ -62,6 +70,22 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        try {
+            System.out.println("Signature:");
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    "kstr14.tipper",
+                    PackageManager.GET_SIGNATURES);
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+
+        } catch (NoSuchAlgorithmException e) {
+
+        }
 
         googleApiClient =  new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -155,15 +179,19 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             return true;
         } else if (id == R.id.main_menu_logout){
             if(user.isGoogleUser()) {
-                Log.e(ACTIVITY_ID, "Google user signing out.....");
+                Log.d(ACTIVITY_ID, "Google user signing out.....");
 
                 if(googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
-                    Log.e(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                    Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
                 } else {
-                    Log.e(ACTIVITY_ID, "googleApiClient was disconnected");
+                    Log.d(ACTIVITY_ID, "googleApiClient was disconnected");
                 }
+            } else if(user.isFacebookUser()) {
+                Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                LoginManager.getInstance().logOut();
             }
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();

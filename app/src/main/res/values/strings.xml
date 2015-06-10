@@ -14,7 +14,9 @@
 
     <!-- Facebook -->
     <string name="facebook_app_id">1444872489140228</string>
-    <string name="facebook_login_button_label">Login with Facebook</string>
+    <string name="com_facebook_loginview_log_out_button">Log out</string>
+    <string name="com_facebook_loginview_log_in_button">Log in</string>
+    <string name="com_facebook_loginview_log_in_button_long">Log in with Facebook</string>
 
     <!-- Toast messages -->
     <string name="toast_main_back_pressed">Press back again to exit.</string>
