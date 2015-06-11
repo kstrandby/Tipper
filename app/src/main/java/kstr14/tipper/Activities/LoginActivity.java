@@ -1,14 +1,10 @@
 package kstr14.tipper.Activities;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,8 +20,6 @@ import com.parse.ParseQuery;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.mail.internet.AddressException;
@@ -60,21 +54,8 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
 
-        try {
-            System.out.println("Signature:");
-            PackageInfo info = getPackageManager().getPackageInfo(
-                    "com.facebook.samples.loginhowto",
-                    PackageManager.GET_SIGNATURES);
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-            }
-        } catch (PackageManager.NameNotFoundException e) {
 
-        } catch (NoSuchAlgorithmException e) {
 
-        }
         app = ((Application) getApplicationContext());
 
         // check for cached user, and go directly to MainActivity if found
@@ -228,29 +209,6 @@ public class LoginActivity extends ActionBarActivity {
         }
     }
 
-/*
-    public void facebookLoginPressed(View view) {
-        List<String> permissions = new ArrayList<String>();
-        permissions.add("public_profile");
-        ParseFacebookUtils.logInWithReadPermissionsInBackground(LoginActivity.this, permissions, new LogInCallback() {
-            @Override
-            public void done(ParseUser user, ParseException err) {
-                if (user == null) {
-                    Log.d("Tipper", "Uh oh. The user cancelled the Facebook login.");
-                } else if (user.isNew()) {
-                    Log.d("Tipper", "User signed up and logged in through Facebook!");
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                } else {
-                    Log.d("Tipper", "User logged in through Facebook!");
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(intent);
-                }
-            }
-        });
-    }
-*/
-
     /**
      * Validates that a password is longer than 8 characters
      *
@@ -346,5 +304,16 @@ public class LoginActivity extends ActionBarActivity {
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 }

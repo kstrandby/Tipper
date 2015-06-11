@@ -25,6 +25,13 @@ import kstr14.tipper.R;
  */
 public class TipBaseAdapter extends BaseAdapter {
 
+    static class ViewHolder {
+        TextView titleView;
+        TextView locationView;
+        ParseImageView imageView;
+        TextView priceView;
+    }
+
     private static final String TAG = "TipBaseAdapter";
 
     private Context context;
@@ -52,36 +59,43 @@ public class TipBaseAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View view, ViewGroup viewGroup) {
+
+        ViewHolder viewHolder;
+
         if(view == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             view = inflater.inflate(R.layout.list_tip_item, null);
+
+            viewHolder = new ViewHolder();
+            viewHolder.titleView = (TextView) view.findViewById(R.id.titleTextView);
+            viewHolder.locationView = (TextView) view.findViewById(R.id.locationTextView);
+            viewHolder.imageView = (ParseImageView) view.findViewById(R.id.imageView);
+            viewHolder.priceView = (TextView) view.findViewById(R.id.priceTextViewListItem);
+            view.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) view.getTag();
         }
 
-        TextView titleView = (TextView) view.findViewById(R.id.titleTextView);
-        TextView locationView = (TextView) view.findViewById(R.id.locationTextView);
-        final ParseImageView imageView = (ParseImageView) view.findViewById(R.id.imageView);
-        TextView priceView = (TextView) view.findViewById(R.id.priceTextViewListItem);
-
-        titleView.setText(tips.get(position).getTitle());
-        priceView.setText("$" + tips.get(position).getPrice());
+        viewHolder.titleView.setText(tips.get(position).getTitle());
+        viewHolder.priceView.setText("$" + tips.get(position).getPrice());
 
         ParseFile parseImg = tips.get(position).getImage();
         if(parseImg != null) {
-            imageView.setPlaceholder(context.getResources().getDrawable(R.drawable.food));
-            imageView.setParseFile(parseImg);
-            imageView.loadInBackground();
+            viewHolder.imageView.setPlaceholder(context.getResources().getDrawable(R.drawable.food));
+            viewHolder.imageView.setParseFile(parseImg);
+            viewHolder. imageView.loadInBackground();
         } else {
             Bitmap img = null;
             String category = tips.get(position).getCategory();
             if (category.equals("Food")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.food, 128, 128);
-                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
             } else if (category.equals("Drinks")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.drinks, 128, 128);
-                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
             } else if (category.equals("Other")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.other, 128, 128);
-                imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
             }
         }
 
@@ -89,9 +103,9 @@ public class TipBaseAdapter extends BaseAdapter {
         if(geoPoint != null) {
             LatLng latLng = MapsHelper.getLatLngFromParseGeoPoint(geoPoint);
             String address = MapsHelper.getAddressFromLatLng(latLng, context);
-            locationView.setText(address);
+            viewHolder.locationView.setText(address);
         } else {
-            locationView.setText("Location unknown");
+            viewHolder.locationView.setText("Location unknown");
         }
 
         return view;

@@ -13,7 +13,6 @@
             android:layout_gravity="center_horizontal|top"
             android:layout_width="262dp"
             android:layout_height="122dp"
-            android:src="@drawable/tipper"
             android:layout_marginTop="20dp"
             android:contentDescription="@string/iv_description"/>
 

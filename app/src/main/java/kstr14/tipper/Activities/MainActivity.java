@@ -58,6 +58,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     private ImageButton foodButton;
     private ImageButton drinksButton;
     private ImageButton otherButton;
+    private Bitmap foodBitmap;
+    private Bitmap drinksBitmap;
+    private Bitmap otherBitmap;
     private ProgressDialog progressDialog;
 
     private boolean exit = false; // keep track of back button clicks
@@ -102,13 +105,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         drinksButton = (ImageButton) findViewById(R.id.main_ib_drinks);
         otherButton = (ImageButton) findViewById(R.id.main_ib_other);
 
-        // set images for imageButtons
-        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
-        foodButton.setImageBitmap(img);
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.drinks, 256, 256);
-        drinksButton.setImageBitmap(img);
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
-        otherButton.setImageBitmap(img);
+        setBitmaps();
 
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
         updateTipList();
@@ -116,6 +113,30 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
     }
+
+    public void setBitmaps() {
+        // set images for imageButtons
+        if(foodBitmap != null && !foodBitmap.isRecycled()) {
+            foodBitmap.recycle();
+            foodBitmap = null;
+        }
+        foodBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
+        foodButton.setImageBitmap(foodBitmap);
+        if(drinksBitmap != null && !drinksBitmap.isRecycled()) {
+            drinksBitmap.recycle();
+            drinksBitmap = null;
+        }
+        drinksBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.drinks, 256, 256);
+        drinksButton.setImageBitmap(drinksBitmap);
+        if(otherBitmap != null && !otherBitmap.isRecycled()) {
+            otherBitmap.recycle();
+            otherBitmap = null;
+        }
+        otherBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.other, 256, 256);
+        otherButton.setImageBitmap(otherBitmap);
+    }
+
+
 
     /**
      * Handles back button clicks - if user clicks back button twice, the app exits
@@ -137,6 +158,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     @Override
     public void onResume() {
         super.onResume();
+        setBitmaps();
         updateTipList();
     }
 
@@ -178,27 +200,30 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             startActivity(intent);
             return true;
         } else if (id == R.id.main_menu_logout){
-            if(user.isGoogleUser()) {
-                Log.d(ACTIVITY_ID, "Google user signing out.....");
+            if(user != null) {
+                if(user.isGoogleUser()) {
+                    Log.d(ACTIVITY_ID, "Google user signing out.....");
 
-                if(googleApiClient.isConnected()) {
-                    Plus.AccountApi.clearDefaultAccount(googleApiClient);
-                    googleApiClient.disconnect();
-                    Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
-                } else {
-                    Log.d(ACTIVITY_ID, "googleApiClient was disconnected");
+                    if(googleApiClient.isConnected()) {
+                        Plus.AccountApi.clearDefaultAccount(googleApiClient);
+                        googleApiClient.disconnect();
+                        Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
+                    } else {
+                        Log.d(ACTIVITY_ID, "googleApiClient was disconnected");
+                    }
+                } else if(user.isFacebookUser()) {
+                    Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                    FacebookSdk.sdkInitialize(getApplicationContext());
+                    LoginManager.getInstance().logOut();
                 }
-            } else if(user.isFacebookUser()) {
-                Log.d(ACTIVITY_ID, "Facebook user signing out......");
-                FacebookSdk.sdkInitialize(getApplicationContext());
-                LoginManager.getInstance().logOut();
+                try {
+                    ((Application)getApplicationContext()).getCurrentUser().unpin();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
-            try {
-                ((Application)getApplicationContext()).getCurrentUser().unpin();
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return false;
-            }
+
             ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
@@ -217,6 +242,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
      * refreshes the list of tips by pulling data fro the database
      */
     private void updateTipList() {
+
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
         query.whereEqualTo("private", false);
         query.findInBackground(new FindCallback<Tip>() {
@@ -227,6 +253,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
                     tips = list;
                     adapter = new TipBaseAdapter(getApplicationContext(), tips);
                     listView.setAdapter((ListAdapter) adapter);
+
                 } else if (e == null) {
                     // means there is just no tips in database
                     TextView msg = (TextView) findViewById(R.id.main_tv_empty);
@@ -248,6 +275,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
                 }
             }
         });
+
     }
 
     /**
@@ -298,7 +326,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("title", tip.getTitle());
         intent.putExtra("description", tip.getDescription());
-        intent.putExtra("imageUrl", tip.getImage().getUrl());
+        if(tip.getImage() != null) {
+            intent.putExtra("imageUrl", tip.getImage().getUrl());
+        }
         intent.putExtra("ID", tip.getUuidString());
         startActivity(intent);
     }
@@ -345,6 +375,23 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             Log.d(ACTIVITY_ID, user.getUsername() + " logged in");
         } else {
             Log.d(ACTIVITY_ID, "User is anonymous");
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(foodBitmap != null) {
+            foodBitmap.recycle();
+            foodBitmap = null;
+        }
+        if(drinksBitmap != null) {
+            drinksBitmap.recycle();
+            drinksBitmap = null;
+        }
+        if(otherBitmap != null) {
+            otherBitmap.recycle();
+            otherBitmap = null;
         }
     }
 

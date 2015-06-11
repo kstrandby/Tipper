@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -35,6 +37,7 @@ import java.util.Arrays;
 
 import kstr14.tipper.Application;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 public class DefaultLoginFragment extends Fragment implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -45,6 +48,8 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
 
     private boolean googleSignInClicked;
     private boolean intentInProgress;
+    private ImageView tipper;
+    private Bitmap tipperBitmap;
 
     private LoginButton facebookButton;
     private CallbackManager callbackManager;
@@ -65,6 +70,9 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
 
         View view = inflater.inflate(R.layout.fragment_default_login, container, false);
         view.findViewById(R.id.google_sign_in_button).setOnClickListener(this);
+
+        tipper = (ImageView) view.findViewById(R.id.app_logo);
+        setBitmap();
 
         // setup facebook login
         facebookButton = (LoginButton) view.findViewById(R.id.facebook_sign_in_button);
@@ -98,6 +106,15 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
 
         return view;
 
+    }
+
+    public void setBitmap() {
+        if(tipperBitmap != null) {
+            tipperBitmap.recycle();
+            tipperBitmap = null;
+        }
+        tipperBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.tipper, 256, 256);
+        tipper.setImageBitmap(tipperBitmap);
     }
 
     @Override
@@ -163,10 +180,23 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if(tipper != null) {
+            setBitmap();
+        }
+
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
         if (googleApiClient.isConnected()) {
             googleApiClient.disconnect();
+        }
+        if(tipperBitmap != null) {
+            tipperBitmap.recycle();
+            tipper = null;
         }
     }
 
@@ -272,6 +302,15 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(tipperBitmap != null) {
+            tipperBitmap.recycle();
+            tipper = null;
         }
     }
 }

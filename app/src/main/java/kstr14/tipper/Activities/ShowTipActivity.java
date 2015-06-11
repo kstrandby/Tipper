@@ -69,6 +69,11 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
     private ProgressDialog progressDialog;
     private String sourceActivity;
 
+    private Bitmap upvoteBitmap;
+    private Bitmap downvoteBitmap;
+    private Bitmap favouritesBitmap;
+    private Bitmap imageBitmap;
+
     private GoogleApiClient googleApiClient;
 
     private ShareActionProvider shareActionProvider;
@@ -103,12 +108,12 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         priceView = (TextView) findViewById(R.id.showTip_tv_price);
 
         // set images of ImageButtons and ImageViews
-        Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_up, 128, 128);
-        upvoteButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_down, 128, 128);
-        downvoteButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
-        img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.star, 128, 128);
-        favouritesButton.setImageBitmap(Bitmap.createScaledBitmap(img, 64, 64, false));
+        upvoteBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_up, 128, 128);
+        upvoteButton.setImageBitmap(Bitmap.createScaledBitmap(upvoteBitmap, 64, 64, false));
+        downvoteBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.thumbs_down, 128, 128);
+        downvoteButton.setImageBitmap(Bitmap.createScaledBitmap(downvoteBitmap, 64, 64, false));
+        favouritesBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.star, 128, 128);
+        favouritesButton.setImageBitmap(Bitmap.createScaledBitmap(favouritesBitmap, 64, 64, false));
 
         sourceActivity = getIntent().getExtras().getString("source");
 
@@ -148,9 +153,9 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
 
                     // set default image if no image exist in database
                     ParseFile image = tip.getImage();
-                    Bitmap img = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
+                    imageBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.food, 256, 256);
                     if (image == null) {
-                        imageView.setImageBitmap(img);
+                        imageView.setImageBitmap(imageBitmap);
                     } else {
                         imageView.setPlaceholder(getResources().getDrawable(R.drawable.food));
                         imageView.setParseFile(image);
@@ -170,6 +175,27 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         callbackManager = CallbackManager.Factory.create();
 
 
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(upvoteBitmap != null) {
+            upvoteBitmap.recycle();
+            upvoteBitmap = null;
+        }
+        if(downvoteBitmap != null) {
+            downvoteBitmap.recycle();
+            downvoteBitmap = null;
+        }
+        if(favouritesBitmap != null) {
+            favouritesBitmap.recycle();
+            favouritesBitmap = null;
+        }
+        if(imageBitmap != null) {
+            imageBitmap.recycle();
+            imageBitmap = null;
+        }
     }
 
     @Override
