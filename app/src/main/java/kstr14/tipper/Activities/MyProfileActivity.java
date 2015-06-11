@@ -9,6 +9,8 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.widget.TextView;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
@@ -132,6 +134,10 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
                 } else {
                     Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
                 }
+            } else if(user.isFacebookUser()) {
+                Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                LoginManager.getInstance().logOut();
             }
             try {
                 ((Application)getApplicationContext()).getCurrentUser().unpin();

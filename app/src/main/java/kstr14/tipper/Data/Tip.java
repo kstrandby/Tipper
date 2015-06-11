@@ -147,4 +147,5 @@ public class Tip extends ParseObject {
     public void setLocation(ParseGeoPoint location) {
         put("location", location);
     }
+
 }

@@ -18,11 +18,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.plus.Plus;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
 
 import java.util.ArrayList;
@@ -35,6 +40,7 @@ import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.Tip;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ErrorHandler;
+import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
 /**
@@ -76,16 +82,17 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_search_result);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        googleApiClient =  new GoogleApiClient.Builder(this)
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
+                .addApi(LocationServices.API)
                 .build();
         googleApiClient.connect();
 
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
 
-        user = ((Application)getApplicationContext()).getCurrentUser();
+        user = ((Application) getApplicationContext()).getCurrentUser();
 
         listView = (ListView) findViewById(R.id.searchResult_lv_result);
         emptyView = (TextView) findViewById(R.id.listActivity_empty_view);
@@ -96,28 +103,25 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
         String context = intent.getExtras().getString("context");
 
         // if we are showing favourites list, we do not care which activity we came from, just show the favourites
-        if(context != null) {
-            if(context.equals("favourites")) {
+        if (context != null) {
+            if (context.equals("favourites")) {
                 getSupportActionBar().setTitle("Favourites");
                 listType = LIST_TYPE_FAVOURITES;
-            } else {
-                // otherwise, we have several options
-                if(sourceActivity.equals(MainActivity.ACTIVITY_ID)) {
-                    // this is the case when one of the category buttons is clicked on the main screen
-                    if(context.equals("category")) {
-                        String category = intent.getExtras().getString("category");
-                        getSupportActionBar().setTitle(category);
-                        listType = LIST_TYPE_CATEGORY;
-                    }
-                } else if(sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
-                    // this is the case when a search for groups has been made
-                    getSupportActionBar().setTitle("Search Result");
-                    listType = LIST_TYPE_GROUPS_SEARCH;
-                } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
-                    // this is the case when a search for tips has been made
-                    getSupportActionBar().setTitle("Search Result");
-                    listType = LIST_TYPE_TIPS_SEARCH;
-                }
+            } else if (context.equals("category")) {
+                String category = intent.getExtras().getString("category");
+                getSupportActionBar().setTitle(category);
+                listType = LIST_TYPE_CATEGORY;
+            }
+        } else {
+            // otherwise, we have several options
+            if (sourceActivity.equals(MyGroupsActivity.ACTIVITY_ID)) {
+                // this is the case when a search for groups has been made
+                getSupportActionBar().setTitle("Search Result");
+                listType = LIST_TYPE_GROUPS_SEARCH;
+            } else if (sourceActivity.equals(SearchTipActivity.ACTIVITY_ID)) {
+                // this is the case when a search for tips has been made
+                getSupportActionBar().setTitle("Search Result");
+                listType = LIST_TYPE_TIPS_SEARCH;
             }
         }
 
@@ -139,15 +143,21 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             // this case is the result of a search for tips, so a query matching the search restrictions
             // will be constructed first
             String keyword = getIntent().getExtras().getString("keyword");
-            String location = getIntent().getExtras().getString("location");
+
+            LatLng latLng = intent.getParcelableExtra("position");
+            ParseGeoPoint geoPoint = null;
+            if(latLng != null) {
+                geoPoint = MapsHelper.getParseGeoPointFromLatLng(latLng);
+            }
+
             String[] categories = getIntent().getExtras().getStringArray("categories");
             int maxPrice = getIntent().getExtras().getInt("maxPrice");
 
-            if(categories.length > 1 && categories.length < NUMBER_OF_CATEGORIES) {
+            if (categories.length > 1 && categories.length < NUMBER_OF_CATEGORIES) {
                 // we have to fetch only tips with the corresponding categories
                 // create query for each chosen category and merge them together
                 List<ParseQuery<Tip>> queries = new ArrayList<>();
-                for(String category : categories) {
+                for (String category : categories) {
                     ParseQuery<Tip> tipQuery = ParseQuery.getQuery("Tip");
                     tipQuery.whereEqualTo("category", category);
                     queries.add(tipQuery);
@@ -157,11 +167,14 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 mainQuery.whereEqualTo("private", false);
                 mainQuery.whereContains("title", keyword);
                 mainQuery.whereLessThanOrEqualTo("price", maxPrice);
+                if (geoPoint != null) {
+                    mainQuery.whereWithinKilometers("location", geoPoint, 10);
+                }
                 mainQuery.findInBackground(new FindCallback<Tip>() {
                     public void done(List<Tip> results, ParseException e) {
                         progressDialog.dismiss();
                         if (e == null) {
-                            if(results != null && !results.isEmpty()) {
+                            if (results != null && !results.isEmpty()) {
                                 adapter = new TipBaseAdapter(getApplicationContext(), results);
                                 listView.setAdapter((ListAdapter) adapter);
                             } else {
@@ -175,7 +188,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                         }
                     }
                 });
-            } else if (categories.length == 1 || categories.length == NUMBER_OF_CATEGORIES){
+            } else if (categories.length == 1 || categories.length == NUMBER_OF_CATEGORIES) {
                 // we only specify one category for the query or no categories (if all categories have been chosen)
                 ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
                 query.whereEqualTo("private", false);
@@ -184,6 +197,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 }
                 query.whereContains("lowerCaseTitle", keyword.toLowerCase());
                 query.whereLessThanOrEqualTo("price", maxPrice);
+                if (geoPoint != null) {
+                    query.whereWithinKilometers("location", geoPoint, 10);
+                }
                 query.findInBackground(new FindCallback<Tip>() {
                     @Override
                     public void done(List<Tip> results, ParseException e) {
@@ -218,7 +234,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 public void done(List<Group> list, ParseException e) {
                     progressDialog.dismiss();
                     if (e == null) {
-                        if(list != null && !list.isEmpty()) {
+                        if (list != null && !list.isEmpty()) {
                             adapter = new GroupBaseAdapter(getApplicationContext(), list);
                             listView.setAdapter((ListAdapter) adapter);
                         } else {
@@ -352,24 +368,28 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.main_menu_logout){
-            if(user.isGoogleUser()) {
+        } else if (id == R.id.main_menu_logout) {
+            if (user.isGoogleUser()) {
                 Log.d(ACTIVITY_ID, "Google user signing out.....");
-                if(googleApiClient.isConnected()) {
+                if (googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
                     Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
                 } else {
                     Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
                 }
+            } else if(user.isFacebookUser()) {
+                Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                LoginManager.getInstance().logOut();
             }
             try {
-                ((Application)getApplicationContext()).getCurrentUser().unpin();
+                ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
                 return false;
             }
-            ((Application)getApplicationContext()).setCurrentUser(null);
+            ((Application) getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;
@@ -385,7 +405,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (adapter instanceof  GroupBaseAdapter) {
+        if (adapter instanceof GroupBaseAdapter) {
             Group group = (Group) listView.getAdapter().getItem(position);
             Intent intent = new Intent(getApplicationContext(), ShowGroupActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -402,7 +422,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        if (adapter instanceof  GroupBaseAdapter) {
+        if (adapter instanceof GroupBaseAdapter) {
             final Group group = (Group) listView.getAdapter().getItem(position);
             if (group.getCreator().equals(user)) {
                 // create dialog for deletion of item
@@ -430,9 +450,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 Toast.makeText(getApplicationContext(), "You do not have the rights to delete this group.", Toast.LENGTH_SHORT).show();
                 return true;
             }
-        } else if (adapter instanceof  TipBaseAdapter) {
+        } else if (adapter instanceof TipBaseAdapter) {
             //TODO check for favourites list - in this case longclick should just remove tip from favourites list
-            if(listType == LIST_TYPE_FAVOURITES) {
+            if (listType == LIST_TYPE_FAVOURITES) {
                 final Tip tip = (Tip) listView.getAdapter().getItem(position);
                 AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
                 builder.setTitle("Remove tip from favourites?");
@@ -460,7 +480,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             } else {
                 // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
                 final Tip tip = (Tip) listView.getAdapter().getItem(position);
-                if (tip.getCreator().equals(user) || ((Group)tip.getGroup()).getCreator().equals(user)) {
+                if (tip.getCreator().equals(user) || ((Group) tip.getGroup()).getCreator().equals(user)) {
                     // create dialog for deletion of item
                     AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
                     builder.setTitle("Remove tip?");
@@ -491,7 +511,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
         return false;
     }
 
-    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    /**
+     * methods below required only for use of GoogleApiClient, which is necessary for logout **
+     */
     @Override
     public void onConnected(Bundle bundle) {
 

@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +17,16 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.login.LoginManager;
+import com.facebook.share.Sharer;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.LatLng;
@@ -26,7 +38,9 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseImageView;
 import com.parse.ParseQuery;
 
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 import kstr14.tipper.Application;
@@ -56,6 +70,11 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
     private String sourceActivity;
 
     private GoogleApiClient googleApiClient;
+
+    private ShareActionProvider shareActionProvider;
+    CallbackManager callbackManager;
+    private LoginManager manager;
+    ShareDialog shareDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,10 +160,24 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                     // this case means connection error - show an alertdialog and go back to previous activity when OK clicked
                     ErrorHandler.showConnectionErrorAlert(ShowTipActivity.this, getParentActivity());
                     Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+
+
                 }
             }
         });
+
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
+
+
     }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
 
     /**
      * Creates a nice String representation of the time period of the Tip
@@ -179,7 +212,7 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                     + start.get(Calendar.YEAR) + " "
                     + String.format("%02d", start.get(Calendar.HOUR_OF_DAY)) + ":"
                     + String.format("%02d", start.get(Calendar.MINUTE)) + "\n-"
-                    + end.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US)
+                    + end.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, Locale.US) + " "
                     + String.format("%02d", end.get(Calendar.DAY_OF_MONTH)) + "-"
                     + String.format("%02d", end.get(Calendar.MONTH) + 1) + "-"
                     + end.get(Calendar.YEAR) + " "
@@ -303,11 +336,109 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         return intent;
     }
 
+    /**
+     * Sets up the ShareActionProvider, making it possible to share a Tip by a click on the ActionBar
+     * The Tip can then be shared to various apps, including Facebook and Google+
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_show_tip, menu);
-        return true;
+
+        MenuItem item = menu.findItem(R.id.share);
+        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        shareActionProvider.setShareIntent(createShareIntent());
+        shareActionProvider.setOnShareTargetSelectedListener(new ShareActionProvider.OnShareTargetSelectedListener() {
+            @Override
+            public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+                final String packageName = intent.getComponent().getPackageName();
+                if (packageName.contains("facebook")) {
+                    shareTipOnFacebook();
+                }
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * Creates default Intent for sharing Tip on other apps than Facebook
+     * This sharing includes title, description of Tip and a link to the image
+     * (only if the Tip has an image attached to it)
+     * @return
+     */
+    private Intent createShareIntent() {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        String title = getIntent().getExtras().getString("title");
+        String description = getIntent().getExtras().getString("description");
+        String url = getIntent().getExtras().getString("imageUrl");
+
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Tip for you: " + title);
+        if(url != null) {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Tip for you: \n" + title + "\n" + description + "\n " + url);
+        } else {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, "Tip for you: \n" + title + "\n" + description);
+        }
+
+        return shareIntent;
+    }
+
+
+
+    /**
+     * Handles setting up the content of the Facebook ShareDialog and
+     * FacebookCallBack (used for completing/cancelling a ShareDialog)
+     */
+    private void shareTipOnFacebook() {
+        Profile profile = Profile.getCurrentProfile();
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        if (profile != null && accessToken != null) {
+            // check if app has permission to publish
+            if (accessToken.getPermissions().contains("publish_actions")) {
+
+                // setup the post contents
+                ShareLinkContent shareContent = new ShareLinkContent.Builder()
+                        .setContentTitle(tip.getTitle())
+                        .setContentDescription(tip.getDescription())
+                        .setImageUrl(Uri.parse(tip.getImage().getUrl()))
+                        .setContentUrl(Uri.parse(tip.getImage().getUrl()))
+                        .build();
+
+                // show the facebook sharing dialog
+                ShareDialog shareDialog = new ShareDialog(ShowTipActivity.this);
+                shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
+                    @Override
+                    public void onSuccess(Sharer.Result result) {
+                        Log.d(ACTIVITY_ID, "Tip shared on Facebook");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Log.d(ACTIVITY_ID, "Facebook sharing cancelled");
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        Toast.makeText(getApplicationContext(), "Sharing failed. Please check your internet connection.", Toast.LENGTH_LONG).show();
+                        Log.e(ACTIVITY_ID, "Facebook sharing failed: " + exception.getMessage());
+                        exception.printStackTrace();
+                    }
+                });
+
+
+                if (ShareDialog.canShow(ShareLinkContent.class)) {
+                    shareDialog.show(shareContent);
+                }
+
+            } else {
+                // if app does not have sharing permission, request it
+                List<String> permissions = Arrays.asList("publish_actions");
+                LoginManager.getInstance().logInWithPublishPermissions(this, permissions);
+            }
+        }
     }
 
     /**
@@ -349,6 +480,10 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                 } else {
                     Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
                 }
+            } else if(user.isFacebookUser()) {
+                Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                LoginManager.getInstance().logOut();
             }
             try {
                 // in all cases, unpin the user from the local datastore
@@ -366,6 +501,8 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
+        } else if (id == R.id.share) {
+
         }
 
         return super.onOptionsItemSelected(item);

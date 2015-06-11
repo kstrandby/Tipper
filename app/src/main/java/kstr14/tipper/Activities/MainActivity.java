@@ -296,6 +296,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         Tip tip = (Tip)listView.getAdapter().getItem(position);
         Intent intent = new Intent(MainActivity.this, ShowTipActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
+        intent.putExtra("title", tip.getTitle());
+        intent.putExtra("description", tip.getDescription());
+        intent.putExtra("imageUrl", tip.getImage().getUrl());
         intent.putExtra("ID", tip.getUuidString());
         startActivity(intent);
     }

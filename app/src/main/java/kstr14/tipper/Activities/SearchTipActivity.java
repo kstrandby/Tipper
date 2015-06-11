@@ -1,8 +1,15 @@
 package kstr14.tipper.Activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,16 +20,22 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.facebook.FacebookSdk;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.plus.Plus;
 import com.parse.ParseException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import kstr14.tipper.Application;
 import kstr14.tipper.Data.TipperUser;
+import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
 
@@ -40,6 +53,10 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     private int chosenPrice;
 
     private GoogleApiClient googleApiClient;
+    public static String defaultLocation = "Current location";
+    private LatLng latLngPosition;
+    private Geocoder geoCoder;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +65,8 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         setContentView(R.layout.activity_search_tip);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        googleApiClient =  new GoogleApiClient.Builder(this)
+        geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
@@ -64,6 +82,19 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         drinksCheckBox = (CheckBox) findViewById(R.id.searchTip_cb_drinks);
         otherCheckBox = (CheckBox) findViewById(R.id.searchTip_cb_other);
 
+        // set default text on location input field unless the field is being edited
+        locationInput.setText(defaultLocation);
+        locationInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus && TextUtils.isEmpty(locationInput.getText().toString())) {
+                    locationInput.setText(defaultLocation);
+                } else if (hasFocus && locationInput.getText().toString().equals(defaultLocation)) {
+                    locationInput.setText("");
+                }
+            }
+        });
+
         // handle price SeekBar changes
         priceSeekBarInput.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -73,11 +104,33 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) { }
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) { }
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
+
+        // record user's position for location search
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                latLngPosition = MapsHelper.getLatLngFromLocation(location);
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        // Register the listener with the Location Manager to receive location updates
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
     }
 
 
@@ -92,22 +145,32 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
      * Called when the SEARCH button is clicked
      * The intent if filled with search query requirements specified
      * by the user on the UI (i.e. prices, keyword, etc.)
+     *
      * @param view
      */
-    public void searchTip(View view) {
+    public void searchTip(View view) throws IOException {
         // Preparing extras for the Intent
         String keyword = keywordInput.getText().toString();
         String location = locationInput.getText().toString();
+
+        if(!location.equals(defaultLocation)) {
+            // search for results
+            List<Address> results = geoCoder.getFromLocationName(location, 1);
+            if(results != null && !results.isEmpty()) {
+                latLngPosition = new LatLng(results.get(0).getLatitude(), results.get(0).getLongitude());
+            }
+        }
+
         List<String> categories = new ArrayList<>();
-        if(foodCheckBox.isChecked()) categories.add("food");
-        if(drinksCheckBox.isChecked()) categories.add("drinks");
-        if(otherCheckBox.isChecked()) categories.add("other");
+        if (foodCheckBox.isChecked()) categories.add("Food");
+        if (drinksCheckBox.isChecked()) categories.add("Drinks");
+        if (otherCheckBox.isChecked()) categories.add("Other");
         String[] categoriesArray = categories.toArray(new String[categories.size()]);
 
         Intent intent = new Intent(this, ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
         intent.putExtra("keyword", keyword);
-        intent.putExtra("location", location);
+        intent.putExtra("location", latLngPosition);
         intent.putExtra("categories", categoriesArray);
         intent.putExtra("maxPrice", chosenPrice);
 
@@ -134,25 +197,29 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
             intent.putExtra("source", ACTIVITY_ID);
             startActivity(intent);
             return true;
-        } else if (id == R.id.main_menu_logout){
-            TipperUser user = ((Application)getApplicationContext()).getCurrentUser();
-            if(user.isGoogleUser()) {
+        } else if (id == R.id.main_menu_logout) {
+            TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
+            if (user.isGoogleUser()) {
                 Log.d(ACTIVITY_ID, "Google user signing out.....");
-                if(googleApiClient.isConnected()) {
+                if (googleApiClient.isConnected()) {
                     Plus.AccountApi.clearDefaultAccount(googleApiClient);
                     googleApiClient.disconnect();
                     Log.d(ACTIVITY_ID, "googleApiClient was connected, user is signed out now");
                 } else {
                     Log.e(ACTIVITY_ID, "Trying to log out user, but GoogleApiClient was disconnected");
                 }
+            } else if(user.isFacebookUser()) {
+                Log.d(ACTIVITY_ID, "Facebook user signing out......");
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                LoginManager.getInstance().logOut();
             }
             try {
-                ((Application)getApplicationContext()).getCurrentUser().unpin();
+                ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
                 e.printStackTrace();
                 return false;
             }
-            ((Application)getApplicationContext()).setCurrentUser(null);
+            ((Application) getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
             return true;
@@ -166,7 +233,9 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         return super.onOptionsItemSelected(item);
     }
 
-    /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
+    /**
+     * methods below required only for use of GoogleApiClient, which is necessary for logout **
+     */
     @Override
     public void onConnected(Bundle bundle) {
 

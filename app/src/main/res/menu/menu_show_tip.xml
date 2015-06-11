@@ -2,10 +2,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context="kstr14.tipper.Activities.ShowTipActivity">
 
-    <item android:id="@+id/action_share"
+    <item android:id="@+id/share"
         android:title="@string/menu_share"
         android:icon="@drawable/ic_action_share"
-        app:showAsAction="always"/>
+        app:showAsAction="always"
+        app:actionProviderClass="android.support.v7.widget.ShareActionProvider"/>
 
     <!-- items in menu overflow -->
     <item android:id="@+id/profile"
