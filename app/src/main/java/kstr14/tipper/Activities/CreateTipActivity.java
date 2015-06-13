@@ -216,7 +216,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                             }
                         });
                     } else {
-                        Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
                     }
 
@@ -250,7 +251,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                         }
                     } else {
                         if(e != null) {
-                            Log.e(ACTIVITY_ID, "Parse error: \n" + e.getStackTrace().toString());
+                            Log.e(ACTIVITY_ID, "Parse error: \n" + e.getMessage());
+                            e.printStackTrace();
                             ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
 
                         }
@@ -341,8 +343,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         String title = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
 
-        //TODO fetch values from spinners
         String selectedRepeatStyle = repeatStyle.getSelectedItem().toString();
+
         if (selectedRepeatStyle.equals("One time event")) {
 
         } else if (selectedRepeatStyle.equals("Daily")) {

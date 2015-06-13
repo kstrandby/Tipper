@@ -36,14 +36,12 @@
         android:layout_alignEnd="@+id/createTip_ed_title" />
 
     <Button
+        style="@style/buttonStyle"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="@string/b_text_create"
         android:id="@+id/createTip_b_create"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
         android:onClick="createTip"
-        android:background="#6c71a5"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="30dp" />

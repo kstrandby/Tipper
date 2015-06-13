@@ -4,6 +4,7 @@
     <color name="primary">#6c71a5</color>
     <color name="primary_dark">#323875</color>
     <color name="accent">#b5b9d6</color>
+    <color name="white">#FFFFFF</color>
 
     <!-- Base application theme. -->
     <!-- inherit from the material theme -->
@@ -27,4 +28,9 @@
     <color name="com_facebook_button_background_color_disabled">#bdc1c9</color>
     <color name="com_facebook_button_background_color_pressed">#2f477a</color>
 
+    <style name="buttonStyle" parent="android:style/Widget.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@color/primary</item>
+    </style>
 </resources>

@@ -4,13 +4,9 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,8 +30,6 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import kstr14.tipper.Adapters.TipBaseAdapter;
@@ -74,22 +68,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {
-            System.out.println("Signature:");
-            PackageInfo info = getPackageManager().getPackageInfo(
-                    "kstr14.tipper",
-                    PackageManager.GET_SIGNATURES);
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-
-        } catch (NoSuchAlgorithmException e) {
-
-        }
-
+        // set up google API for google log out
         googleApiClient =  new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -104,9 +83,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         foodButton = (ImageButton) findViewById(R.id.main_ib_food);
         drinksButton = (ImageButton) findViewById(R.id.main_ib_drinks);
         otherButton = (ImageButton) findViewById(R.id.main_ib_other);
-
         setBitmaps();
 
+        // show ProgressDialog until tips have been downloaded
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
         updateTipList();
 
@@ -114,6 +93,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         listView.setOnItemLongClickListener(this);
     }
 
+    /**
+     * Handles setting up bitmaps and recycling them to save memory
+     */
     public void setBitmaps() {
         // set images for imageButtons
         if(foodBitmap != null && !foodBitmap.isRecycled()) {
@@ -155,6 +137,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         }
     }
 
+    /**
+     * When this activity resumes, refresh the list of tips and set the bitmaps again
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -168,9 +153,14 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         return true;
     }
 
+
+    /**
+     * Handles menu item clicks
+     * @param item, the menu item clicked
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // handling action bar events
         int id = item.getItemId();
 
         if (id == R.id.groups) {

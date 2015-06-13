@@ -100,6 +100,10 @@ public class TipperUser extends ParseObject {
         return getBoolean("facebook");
     }
 
+    public String getOneTimePassword() {
+        return getString("onetimepassword");
+    }
+
     @Override
     public boolean equals(Object other){
         if (other == null) return false;

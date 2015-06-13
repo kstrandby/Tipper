@@ -54,8 +54,6 @@ public class LoginActivity extends ActionBarActivity {
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
 
-
-
         app = ((Application) getApplicationContext());
 
         // check for cached user, and go directly to MainActivity if found
@@ -67,6 +65,7 @@ public class LoginActivity extends ActionBarActivity {
                 app.setCurrentUser(user);
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
+                finish();
             } else {
                 Log.d(ACTIVITY_ID, "No cached user found.");
             }
@@ -215,7 +214,7 @@ public class LoginActivity extends ActionBarActivity {
      * @param password, the password to be validated
      * @return true if the password is long enough, false otherwise
      */
-    private boolean passwordLongEnough(String password) {
+    public static boolean passwordLongEnough(String password) {
         if (password.length() < 8) return false;
         else return true;
     }
@@ -227,7 +226,7 @@ public class LoginActivity extends ActionBarActivity {
      * @param password2, the second password
      * @return true  if they are equal, false otherwise
      */
-    public boolean validatePassword(String password1, String password2) {
+    public static boolean validatePassword(String password1, String password2) {
         if (password1.equals(password2)) return true;
         else return false;
     }

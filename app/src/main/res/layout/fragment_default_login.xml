@@ -58,24 +58,22 @@
                 android:layout_marginTop="20dp">
 
                 <Button
+                    style="@style/buttonStyle"
                     android:layout_width="140dp"
                     android:layout_height="50dp"
                     android:text="@string/b_text_login"
                     android:id="@+id/loginButtonDefaultLoginFragment"
                     android:layout_weight="0.27"
-                    android:textColor="#ffffffff"
-                    android:background="@color/accent"
                     android:layout_marginRight="20dp"
                     android:onClick="defaultLoginPressed" />
 
                 <Button
+                    style="@style/buttonStyle"
                     android:layout_width="140dp"
                     android:layout_height="50dp"
                     android:text="@string/b_text_sigup"
                     android:id="@+id/signUpDefaultLoginFragment"
                     android:layout_weight="0.86"
-                    android:textColor="#ffffffff"
-                    android:background="@color/accent"
                     android:layout_marginLeft="20dp"
                     android:onClick="defaultSignUpPressed" />
             </LinearLayout>
@@ -88,7 +86,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
                 android:textStyle="bold"
-                android:textColor="#ffffffff" />
+                android:textColor="#ffffffff"
+                android:clickable="true" />
 
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/google_sign_in_button"

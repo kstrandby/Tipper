@@ -92,16 +92,15 @@
         android:textStyle="bold" />
 
     <Button
+        style="@style/buttonStyle"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="@string/b_text_search"
         android:id="@+id/searchTip_b_search"
-        android:background="@color/primary_dark"
         android:layout_marginBottom="67dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:onClick="searchTip"
-        android:textColor="@color/accent"
         android:textStyle="bold" />
 
     <EditText

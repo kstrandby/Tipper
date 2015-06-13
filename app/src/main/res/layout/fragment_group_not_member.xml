@@ -4,16 +4,14 @@
     tools:context="kstr14.tipper.Activities.GroupNotMemberFragment">
 
     <Button
+        style="@style/buttonStyle"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:text="@string/b_text_join_group"
         android:id="@+id/showGroups_b_joinGroup"
-        android:textColor="#fff"
         android:onClick="joinGroup"
         android:layout_marginBottom="30dp"
         android:layout_marginTop="10dp"
-        android:layout_gravity="center"
-        android:background="@color/primary"
-        android:textSize="20sp" />
+        android:layout_gravity="center"/>
 
 </FrameLayout>

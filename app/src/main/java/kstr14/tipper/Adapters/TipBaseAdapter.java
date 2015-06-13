@@ -89,13 +89,13 @@ public class TipBaseAdapter extends BaseAdapter {
             String category = tips.get(position).getCategory();
             if (category.equals("Food")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.food, 128, 128);
-                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 128, 128, false));
             } else if (category.equals("Drinks")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.drinks, 128, 128);
-                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 128, 128, false));
             } else if (category.equals("Other")) {
                 img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.other, 128, 128);
-                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
+                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 128, 128, false));
             }
         }
 

@@ -72,12 +72,11 @@
     </LinearLayout>
 
     <Button
+        style="@style/buttonStyle"
         android:layout_width="310dp"
         android:layout_height="wrap_content"
         android:text="@string/b_text_sigup"
         android:id="@+id/signupButtonSignupFragment"
-        android:textColor="#ffffffff"
-        android:background="@color/accent"
         android:onClick="signupPressed"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="150dp" />

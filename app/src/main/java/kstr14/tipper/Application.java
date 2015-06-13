@@ -14,7 +14,7 @@ import kstr14.tipper.Data.TipperUser;
 
 public class Application extends android.app.Application {
 
-    private TipperUser currentUser;
+    private TipperUser currentUser; // global variable to hold the current user object
 
     @Override
     public void onCreate() {
@@ -27,16 +27,20 @@ public class Application extends android.app.Application {
 
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "arag2jjTvkvqlVVyv4jM41m1Y5uFLcMB3Thz4sAQ", "gPzHogMpGzBVfJmsd7hA8WMWKPcWlZy2py3bMH1x");
-
-        // initalize facebook
-        //FacebookSdk.sdkInitialize(getApplicationContext());
-
     }
 
+    /**
+     * Fetches the current user
+     * @return the current user
+     */
     public TipperUser getCurrentUser() {
         return currentUser;
     }
 
+    /**
+     * Sets the current user
+     * @param user, the current user
+     */
     public void setCurrentUser(TipperUser user) {
         currentUser = user;
     }
