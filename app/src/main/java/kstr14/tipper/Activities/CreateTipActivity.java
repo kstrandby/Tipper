@@ -61,21 +61,39 @@ import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
-public class CreateTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * Activity displaying screen for creating a tip
+ * The creation of a tip requires the following attributes
+ * - A title of the tip
+ * - The category of the tip (food, drinks or other)
+ * - The price of the tip
+ * - A start- and end date of the tip
+ * - Specifying whether it is an recurring event or a one-time event
+ * In addition, the following attributes are optional:
+ * - A description of the tip
+ * - An image (which can be captured or chosen in gallery by click on the camera icon on ActionBar)
+ * - The location of the tip (which can be added using Google maps by clicking the location icon on ActionBar)
+ */
+public class CreateTipActivity extends ActionBarActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public final static String ACTIVITY_ID = "CreateTipActivity";
 
+    // recurrence event constants
     private static final int NUMBER_OF_RECURRENCES = 5;
-
     private static final int RECURRENCE_ONCE = 1;
     private static final int RECURRENCE_DAILY = 2;
     private static final int RECURRENCE_WEEKLY = 3;
     private static final int RECURRENCE_MONTHLY = 4;
     private static final int RECURRENCE_YEARLY = 5;
 
+    // activity result constants
     private static final int CAPTURE_IMAGE_REQUEST = 100;
     private static final int CHOOSE_LOCATION_REQUEST = 200;
 
+    // UI elements
     private EditText titleInput;
     private EditText descriptionInput;
     private RadioButton foodRadioButton;
@@ -163,14 +181,14 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             String groupID = getIntent().getExtras().getString("groupID");
             setUpGroupSpinnerOneGroup(groupID);
         } else if (sourceActivity != null && sourceActivity.equals("MainActivity")) {
-            // otherwise the spinner will contain all the groups the current user is member of
+            // otherwise the spinner will contain all the groups the current user is member of (as well as a no group option)
             setUpGroupSpinnerAllGroups();
 
         } else {
             Log.d(ACTIVITY_ID, "No sourceActivity provided!");
         }
 
-        // handle price SeekBar changes
+        // handle price SeekBar changes to update the price TextView to the price chosen on the SeekBar
         priceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -187,14 +205,13 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             }
         });
 
-        // handle start and end date clicks
+        // setup start and end date clicks
         startDateLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showDateTimePicker(chosenStartDate, startDateView, startTimeView);
             }
         });
-
         endDateLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,7 +221,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     /**
-     * Sets the group spinner to all groups the user is a member of
+     * Sets the group spinner to all groups the user is a member of, as well as
+     * a no group option (dummy group)
      */
     public void setUpGroupSpinnerAllGroups() {
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
@@ -224,10 +242,10 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                                     adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
                                     groupChoice.setAdapter(adapter);
                                 } else {
-                                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                                    Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                                    e.printStackTrace();
                                     ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
                                 }
-
                             }
                         });
                     } else {
@@ -235,7 +253,6 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                         e.printStackTrace();
                         ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
                     }
-
                 }
             });
         } else {
@@ -270,13 +287,12 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                             Log.e(ACTIVITY_ID, "Parse error: \n" + e.getMessage());
                             e.printStackTrace();
                             ErrorHandler.showConnectionErrorAlert(CreateTipActivity.this, getParentActivity());
-
                         }
                     }
                 }
             });
         } else {
-            Log.e(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but groupID is null");
+            Log.d(ACTIVITY_ID, "Intent sourceActivity is ShowGroupActivity but groupID is null");
         }
     }
 
@@ -353,19 +369,20 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     /**
-     * method called when CREATE button clicked
+     * The method is called when the "CREATE" button is clicked
+     * Sets up all attributes of the tip to be created and in turn calls
+     * createTip() to create the tip in the database
      */
     public void createTipClicked(View view) {
         if (tip == null) {
             tip = new Tip();
         }
         int recurrence = 0;
+
         // fetch values
         String title = titleInput.getText().toString();
         String description = descriptionInput.getText().toString();
-
         String selectedRepeatStyle = repeatStyle.getSelectedItem().toString();
-
         if (selectedRepeatStyle.equals("One time event")) {
             recurrence = RECURRENCE_ONCE;
         } else if (selectedRepeatStyle.equals("Daily")) {
@@ -378,7 +395,7 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             recurrence = RECURRENCE_YEARLY;
         }
 
-        // set group and set tip to private is chosen group is closed
+        // set group and set tip to private if chosen group is closed
         final Group group = (Group) groupChoice.getSelectedItem();
         if (group != null) {
             if (!group.getUuidString().equals("dummy")) {
@@ -406,10 +423,10 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         } else if (chosenEndDate.before(chosenStartDate)) {
             Toast.makeText(getBaseContext(), "End date cannot be before start date.", Toast.LENGTH_SHORT).show();
         } else {
+            // setup attributes
             if (foodRadioButton.isChecked()) tip.setCategory("Food");
             else if (drinksRadioButton.isChecked()) tip.setCategory("Drinks");
             else if (otherRadioButton.isChecked()) tip.setCategory("Other");
-
             tip.setTitle(title);
             tip.setDescription(description);
             tip.setDownvotes(0);
@@ -419,17 +436,25 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
             tip.setStartDate(chosenStartDate.getTime());
             tip.setUuidString();
             TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-            if(user == null) {
+            if (user == null) {
                 Log.e(ACTIVITY_ID, "User object is null");
             } else {
                 tip.setCreator(user);
             }
-
             createTip(tip, group, recurrence);
-
         }
     }
 
+    /**
+     * Creates the tip in the database
+     * The method also creates the recurring tips in the database according to the specified
+     * recurrence (i.e. if "WEEKLY" is chosen, the method creates tips for the following
+     * NUMBER_OF_RECURRENCES weeks)
+     *
+     * @param tip,        the tip to be created
+     * @param group,      the group for the tip
+     * @param recurrence, the specified recurrence
+     */
     private void createTip(final Tip tip, final Group group, int recurrence) {
         if (recurrence == RECURRENCE_ONCE) {
             tip.saveInBackground(new SaveCallback() {
@@ -446,6 +471,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                         setResult(RESULT_OK, intent);
                         finish();
                     } else {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -461,12 +488,13 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                 newTip.setStartDate(startDate);
                 newTip.setEndDate(endDate);
                 tips.add(newTip);
-
             }
             ParseObject.saveAllInBackground(tips, new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e != null) {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     } else {
                         for (Tip t : tips) {
@@ -499,6 +527,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                 @Override
                 public void done(ParseException e) {
                     if (e != null) {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     } else {
                         for (Tip t : tips) {
@@ -531,6 +561,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                 @Override
                 public void done(ParseException e) {
                     if (e != null) {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     } else {
                         for (Tip t : tips) {
@@ -563,6 +595,8 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
                 @Override
                 public void done(ParseException e) {
                     if (e != null) {
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Error saving. Tip might not be saved.", Toast.LENGTH_SHORT).show();
                     } else {
                         for (Tip t : tips) {
@@ -582,6 +616,13 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         }
     }
 
+    /**
+     * Adds a specified number of months to a Date object
+     *
+     * @param date,   the date
+     * @param months, the number of months to add to the date
+     * @return a new Date object with the added number of months
+     */
     private Date addMonthsToDate(Date date, int months) {
         Date newDate = new Date(date.getTime());
 
@@ -593,6 +634,13 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         return newDate;
     }
 
+    /**
+     * Adds a specified number of days to a Date object
+     *
+     * @param date, the date
+     * @param days, the number of days to add to the date
+     * @return a new Date object with the added number of months
+     */
     private Date addDaysToDate(Date date, int days) {
         Date newDate = new Date(date.getTime());
 
@@ -604,22 +652,43 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         return newDate;
     }
 
-
-    public boolean validateTitle(String title) {
+    /**
+     * Validates a title according to its length (cannot be empty)
+     *
+     * @param title, the title to be validated
+     * @return true if the title is valid, false otherwise
+     */
+    private boolean validateTitle(String title) {
         if (title.length() != 0) return true;
         else return false;
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getSupportParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * Shows AlertDialog asking the user to confirm tip creation before going back
+     *
+     * @return
+     */
     private Intent getParentActivity() {
         AlertDialog.Builder alert = new AlertDialog.Builder(CreateTipActivity.this);
         alert.setTitle("Cancel creation of tip?");
@@ -640,18 +709,27 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
 
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_create_tip, menu);
         return true;
     }
 
+    /**
+     * Handles ActionBar click events
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // handling action bar events
         int id = item.getItemId();
-
         if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -794,6 +872,10 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
         }
     }
 
+    /**
+     * Handles hardware back button clicks
+     * Shows AlertDialog asking the user to confirm group creation before going back
+     */
     @Override
     public void onBackPressed() {
         AlertDialog.Builder alert = new AlertDialog.Builder(CreateTipActivity.this);
@@ -818,16 +900,13 @@ public class CreateTipActivity extends ActionBarActivity implements GoogleApiCli
      */
     @Override
     public void onConnected(Bundle bundle) {
-
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
     }
 }

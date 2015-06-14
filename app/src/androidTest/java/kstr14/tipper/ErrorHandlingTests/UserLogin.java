@@ -14,7 +14,6 @@ import kstr14.tipper.R;
  */
 public class UserLogin extends ActivityInstrumentationTestCase2<LoginActivity> {
 
-    private static final int TIME_OUT = 2000;
     private Solo solo;
 
     private EditText usernameInput;

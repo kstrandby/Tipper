@@ -14,7 +14,6 @@ import kstr14.tipper.R;
  */
 public class UserSignup extends ActivityInstrumentationTestCase2<LoginActivity> {
 
-    private static final int TIME_OUT = 2000;
     private Solo solo;
 
     private Button signUpButtonDefault;
@@ -84,6 +83,10 @@ public class UserSignup extends ActivityInstrumentationTestCase2<LoginActivity> 
     }
 
 
+    /**
+     * Tests that Toast with appropriate message is shown when user enters
+     * a non-valid email address when signing up
+     */
     public void testNonValidEmail() {
         solo.enterText(usernameInput, "TestUser2");
         solo.enterText(emailInput, "nonvalidemail");
@@ -95,6 +98,10 @@ public class UserSignup extends ActivityInstrumentationTestCase2<LoginActivity> 
         solo.goBack();
     }
 
+    /**
+     * Tests that Toast with appropriate message is shown when user enters
+     * an email which already exist in the database, when signing up
+     */
     public void testAccountWithEmailAlreadyExists() {
         solo.enterText(usernameInput, "TestUser2");
         solo.enterText(emailInput, "testuser1@tipper.com");
@@ -106,6 +113,10 @@ public class UserSignup extends ActivityInstrumentationTestCase2<LoginActivity> 
         solo.goBack();
     }
 
+    /**
+     * Tests that Toast with appropriate message is shown when user enters a
+     * password which is too short (below 8 characters), when signing up
+     */
     public void testPasswordTooShort() {
         solo.enterText(usernameInput, "TestUser2");
         solo.enterText(emailInput, "testuser2@tipper.com");
@@ -116,5 +127,4 @@ public class UserSignup extends ActivityInstrumentationTestCase2<LoginActivity> 
         assertTrue(solo.waitForText("Password too short - must be minimum 8 characters."));
         solo.goBack();
     }
-
 }

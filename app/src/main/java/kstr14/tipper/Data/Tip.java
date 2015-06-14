@@ -9,21 +9,10 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * Created by Kristine on 09-05-2015.
+ * Class for a tip object
+ * Only contains getters and setters for fetching and updating attributes of the object in the
+ * database
  */
-
-/**
- * Field values in Tip:
- *  - Title (String)
- *  - Description (String)
- *  - Price (int)
- *  - Upvotes (int)
- *  - Downvotes (int)
- *  - StartDate (Date)
- *  - EndDate (Date)
- *  - Categories (List of Category (enum))
- */
-
 @ParseClassName("Tip")
 public class Tip extends ParseObject {
 

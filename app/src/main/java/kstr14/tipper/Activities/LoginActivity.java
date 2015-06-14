@@ -29,9 +29,17 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
-
+/**
+ * Activity showing Login screen
+ * The activity uses two fragments (DefaultLoginFragment and SignUpFragment)
+ * - DefaultLoginFragment is shown by default and is used for login when a user already has a TipperUser
+ *   account, or for Google+/Facebook login
+ * - SignUpFragment is shown when SignUp button is clicked and contains UI elements for letting
+ *   a new user sign up as a TipperUser
+ */
 public class LoginActivity extends ActionBarActivity {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     private static final String ACTIVITY_ID = "LoginActivity";
 
     // UI elements for default login fragment
@@ -45,7 +53,6 @@ public class LoginActivity extends ActionBarActivity {
     private EditText reenterPasswordSignup;
 
     private Application app;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +76,6 @@ public class LoginActivity extends ActionBarActivity {
             } else {
                 Log.d(ACTIVITY_ID, "No cached user found.");
             }
-
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -78,11 +84,12 @@ public class LoginActivity extends ActionBarActivity {
         DefaultLoginFragment defaultLoginFragment = new DefaultLoginFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.LoginActivity_fragment_container, defaultLoginFragment).commit();
-
     }
 
-
-    // Required for Facebook and Google login callbacks
+    /**
+     * Required for Facebook and Google login callbacks
+     * Sends the callback on to the fragment
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -129,18 +136,23 @@ public class LoginActivity extends ActionBarActivity {
         query.findInBackground(new FindCallback<TipperUser>() {
             @Override
             public void done(List<TipperUser> list, ParseException e) {
-                if (!list.isEmpty()) {
-                    TipperUser user = list.get(0);
-                    if (BCrypt.checkpw(password, user.getPassword())) {
-                        app.setCurrentUser(user);
-                        user.pinInBackground();
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
+                if(e == null) {
+                    if (!list.isEmpty()) {
+                        TipperUser user = list.get(0);
+                        if (BCrypt.checkpw(password, user.getPassword())) {
+                            app.setCurrentUser(user);
+                            user.pinInBackground();
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
+                        }
                     } else {
                         Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Login failed: Wrong password or username.", Toast.LENGTH_SHORT).show();
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });
@@ -164,7 +176,7 @@ public class LoginActivity extends ActionBarActivity {
         String password1 = passwordSignup.getText().toString();
         String password2 = reenterPasswordSignup.getText().toString();
 
-        // validation
+        // input validation
         if (username.length() == 0) {
             Toast.makeText(getApplicationContext(), "Please enter a username.", Toast.LENGTH_SHORT).show();
         } else if (password1.length() == 0) {
@@ -182,7 +194,6 @@ public class LoginActivity extends ActionBarActivity {
                 if (!usernameAvailable(username)) {
                     Toast.makeText(getApplicationContext(), "Sorry, username already taken.", Toast.LENGTH_SHORT).show();
                 } else {
-
                     // setup a user object with the given attributes, save and enter the app
                     final TipperUser user = new TipperUser();
                     user.setUsername(username);
@@ -285,12 +296,24 @@ public class LoginActivity extends ActionBarActivity {
         } else return true;
     }
 
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_login, menu);
         return true;
     }
 
+    /**
+     * Handles ActionBar items clicks
+     * As the ActionBar is hidden on the Login screen, this is not used
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
@@ -315,6 +338,5 @@ public class LoginActivity extends ActionBarActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
     }
 }

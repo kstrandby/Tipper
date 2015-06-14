@@ -35,6 +35,14 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         solo.finishOpenedActivities();
     }
 
+    /**
+     * Tests the following scenario:
+     *  - User logs in to the app
+     *  - User goes to MyGroupsActivity and clicks on one of the groups
+     *  - User leaves group
+     *  - User joins same group again
+     *  - User logs out
+     */
     public void testScenario3() {
         // log in
         solo.assertCurrentActivity("Wrong activity", LoginActivity.class);
@@ -44,8 +52,8 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         solo.enterText(usernameInput, "TestUser1");
         solo.enterText(passwordInput, "password");
         solo.clickOnView(loginButton);
-
         solo.sleep(TIME_OUT);
+
         // test we are in MainActivity and wait TIME_OUT value until tips are loaded
         solo.assertCurrentActivity("Wrong activity", MainActivity.class);
         solo.sleep(TIME_OUT * 2);
@@ -60,13 +68,14 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         solo.assertCurrentActivity("Wrong activity", ShowGroupActivity.class);
         solo.sleep(TIME_OUT);
 
-        // click leave group
+        // click leave group, check that leave group button is no longer visible
         Button leaveGroup = (Button) solo.getView(R.id.showGroups_b_leaveGroup);
         assertNotNull(leaveGroup);
         solo.clickOnView(leaveGroup);
         solo.sleep(TIME_OUT);
         assertFalse(solo.waitForText("LEAVE GROUP"));
 
+        // click join group and check that leave group is visible again
         Button joinGroup = (Button) solo.getView(R.id.showGroups_b_joinGroup);
         assertNotNull(joinGroup);
         solo.clickOnView(joinGroup);
@@ -74,7 +83,7 @@ public class TestScenario3 extends ActivityInstrumentationTestCase2<LoginActivit
         assertTrue(solo.waitForText("LEAVE GROUP"));
         solo.sleep(TIME_OUT);
 
-        // and log out
+        // log out
         solo.clickOnMenuItem("Log out");
         solo.sleep(TIME_OUT);
         solo.assertCurrentActivity("Wrong activity", LoginActivity.class);

@@ -49,10 +49,11 @@ import kstr14.tipper.R;
  * a TipBaseAdapter, if we are showing tips (showing Favourites list, search result or category result),
  * or a GroupBaseAdapter, if we are showing groups (resulting from a group search)
  */
-
 public class ListActivity extends ActionBarActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "ListActivity";
+
     private static final int NUMBER_OF_CATEGORIES = 3;
 
     // static constants used to keep track of which type of list we are showing
@@ -61,8 +62,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
     private static final int LIST_TYPE_TIPS_SEARCH = 3;
     private static final int LIST_TYPE_GROUPS_SEARCH = 4;
 
-    private int listType;
+    private int listType; // keep track of which list type we are showing
 
+    // UI elements
     private ListView listView;
     private TextView emptyView;
     private ProgressDialog progressDialog;
@@ -90,19 +92,20 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 .build();
         googleApiClient.connect();
 
+        // set up UI elements
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
-
-        user = ((Application) getApplicationContext()).getCurrentUser();
-
         listView = (ListView) findViewById(R.id.searchResult_lv_result);
         emptyView = (TextView) findViewById(R.id.listActivity_empty_view);
 
-        // check the source of the intent to know how to set up the list
+        user = ((Application) getApplicationContext()).getCurrentUser();
+
+        // check the source and context extras of the intent to know how to set up the list
         intent = getIntent();
         sourceActivity = intent.getExtras().getString("source");
         String context = intent.getExtras().getString("context");
 
-        // if we are showing favourites list, we do not care which activity we came from, just show the favourites
+        // if we are showing favourites list or category list, we do not care which activity
+        // we came from, just show the favourites
         if (context != null) {
             if (context.equals("favourites")) {
                 getSupportActionBar().setTitle("Favourites");
@@ -124,11 +127,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 listType = LIST_TYPE_TIPS_SEARCH;
             }
         }
-
-
         updateList();
 
-        // set click listeners
+        // set click listeners for list
         listView.setOnItemClickListener(this);
         listView.setOnItemLongClickListener(this);
     }
@@ -183,13 +184,14 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                                 emptyView.setText("No results for search.");
                             }
                         } else {
-                            Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                            Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                            e.printStackTrace();
                             ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                         }
                     }
                 });
             } else if (categories.length == 1 || categories.length == NUMBER_OF_CATEGORIES) {
-                // we only specify one category for the query or no categories (if all categories have been chosen)
+                // we only specify one category for the query, or no categories (if all categories have been chosen)
                 ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
                 query.whereEqualTo("private", false);
                 if (categories.length == 1) {
@@ -214,7 +216,8 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                                 emptyView.setText("No results for search.");
                             }
                         } else {
-                            Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                            Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                            e.printStackTrace();
                             ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                         }
                     }
@@ -223,9 +226,9 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 emptyView.setText("No results for search.");
             }
         } else if (listType == LIST_TYPE_GROUPS_SEARCH) {
+            // this is the case when a search for a group has been made, so there will be an extra set
+            // specifying the query of the search
             final String queryString = intent.getExtras().getString("query");
-            // only option from MyGroupsActivity to ListActivity is that a search for a group has been
-            // performed, so an Extra has been set on the Intent providing the query of the search
             ParseQuery<Group> query = ParseQuery.getQuery("Group");
             query.whereContains("lowerCaseName", queryString);
             query.whereNotEqualTo("uuid", "dummy");
@@ -243,7 +246,8 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                             emptyView.setText("No groups found matching the query.");
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
@@ -266,14 +270,15 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                             emptyView.setText("Your favourites list is currently empty.");
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
             });
         } else if (listType == LIST_TYPE_CATEGORY) {
-            // this option from MainActivity to ListActivity corresponds to one of the category buttons
-            // was clicked, and an Extra has been set on the Intent to provide which category
+            // this option corresponds to one of the category buttons being clicked in MainActivity,
+            // so there will be an Extra set on the Intent to provide which category was clicked
             final String category = intent.getExtras().getString("category");
             final ParseQuery<Tip> tipQuery = ParseQuery.getQuery("Tip");
             tipQuery.whereEqualTo("private", false);
@@ -291,7 +296,8 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                             emptyView.setText("No tips in category: " + category);
                         }
                     } else {
-                        Log.d(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                         ErrorHandler.showConnectionErrorAlert(ListActivity.this, getParentActivity());
                     }
                 }
@@ -299,28 +305,54 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
         }
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getSupportParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * Behaves the same way as hardware back button clicks
+     * @return
+     */
     private Intent getParentActivity() {
         onBackPressed();
         return null;
     }
 
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search_result, menu);
         return true;
     }
 
+    /**
+     * Handles ActionBar click events
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -372,10 +404,16 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
             startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Handles click events on items in the ListView
+     * @param parent
+     * @param view
+     * @param position
+     * @param id
+     */
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (adapter instanceof GroupBaseAdapter) {
@@ -393,6 +431,17 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
         }
     }
 
+    /**
+     * Handles long click events on items in the ListView
+     * Long click will delete the item after prompting for confirmation with an AlertDialog in all
+     * cases except for when showing Favourites list, in this case a long click will remove the tip
+     * from the user's Favourites list
+     * @param parent
+     * @param view
+     * @param position
+     * @param id
+     * @return
+     */
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         if (adapter instanceof GroupBaseAdapter) {
@@ -405,7 +454,7 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // remove tip from database
+                        // remove group from database
                         group.deleteInBackground();
                         updateList();
                         Toast.makeText(getBaseContext(), "Group has been deleted.", Toast.LENGTH_SHORT).show();
@@ -424,7 +473,6 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
                 return true;
             }
         } else if (adapter instanceof TipBaseAdapter) {
-            //TODO check for favourites list - in this case longclick should just remove tip from favourites list
             if (listType == LIST_TYPE_FAVOURITES) {
                 final Tip tip = (Tip) listView.getAdapter().getItem(position);
                 AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
@@ -488,17 +536,11 @@ public class ListActivity extends ActionBarActivity implements AdapterView.OnIte
      * methods below required only for use of GoogleApiClient, which is necessary for logout **
      */
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

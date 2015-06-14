@@ -121,8 +121,8 @@ public class CreateTipTests extends ActivityInstrumentationTestCase2<LoginActivi
         // check we are still in CreateTipActivity
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
 
+        // check for AlertDialog
         solo.goBack();
-        // check for alertdialog
         assertTrue(solo.waitForText("Cancel creation of tip?"));
         solo.clickOnButton("OK");
     }
@@ -164,8 +164,8 @@ public class CreateTipTests extends ActivityInstrumentationTestCase2<LoginActivi
         // check we are still in CreateTipActivity
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
 
+        // check for AlertDialog
         solo.goBack();
-        // check for alertdialog
         assertTrue(solo.waitForText("Cancel creation of tip?"));
         solo.clickOnButton("OK");
     }

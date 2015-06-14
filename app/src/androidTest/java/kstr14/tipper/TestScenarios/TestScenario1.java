@@ -104,7 +104,7 @@ public class TestScenario1 extends ActivityInstrumentationTestCase2<LoginActivit
         assertEquals(numberOfTips + 1, newNumberOfTips);
 
         // check that the new Tip is shown in listView
-        Tip tip = (Tip) listView.getAdapter().getItem(newNumberOfTips- 1);
+        Tip tip = (Tip) listView.getAdapter().getItem(newNumberOfTips - 1);
         assertEquals("Free BBQ", tip.getTitle());
 
         // click on newly created Tip and check that we go to ShowTipActivity
@@ -121,13 +121,13 @@ public class TestScenario1 extends ActivityInstrumentationTestCase2<LoginActivit
         TextView downVotesView = (TextView) solo.getView(R.id.showTip_tv_downvotes);
         assertEquals("0", downVotesView.getText());
 
-        // go back and delete the tip
+        // go back and delete the tip and check that it is deleted
         solo.goBack();
         solo.assertCurrentActivity("Wrong activity", MainActivity.class);
         solo.clickLongInList(newNumberOfTips);
         assertTrue("Could not find the dialog!", solo.searchText("Remove tip?"));
         solo.clickOnButton("OK");
-        solo.waitForText("Tip has been deleted.");
+        assertTrue(solo.waitForText("Tip has been deleted."));
         solo.sleep(TIME_OUT);
 
         // and log out

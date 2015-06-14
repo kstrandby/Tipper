@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 
 import kstr14.tipper.R;
 
+/**
+ * Fragment for showing JOIN button in ShowGroupActivity
+ */
 public class GroupNotMemberFragment extends Fragment {
 
     @Override

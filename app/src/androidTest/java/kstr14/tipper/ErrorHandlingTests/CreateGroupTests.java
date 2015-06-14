@@ -71,13 +71,10 @@ public class CreateGroupTests extends ActivityInstrumentationTestCase2<LoginActi
         assertTrue(solo.waitForText("Please provide a name."));
         solo.assertCurrentActivity("Wrong activity", CreateGroupActivity.class);
 
-        // go back
+        // go back and check for AlertDialog
         solo.goBack();
-
-        // check for alertdialog
         assertTrue(solo.waitForText("Cancel creation of group?"));
         solo.clickOnButton("OK");
-
         solo.assertCurrentActivity("Wrong activity", MyGroupsActivity.class);
         solo.goBack();
     }
@@ -104,13 +101,10 @@ public class CreateGroupTests extends ActivityInstrumentationTestCase2<LoginActi
         assertTrue(solo.waitForText("Please provide a description."));
         solo.assertCurrentActivity("Wrong activity", CreateGroupActivity.class);
 
-        // go back
+        // go back and check for AlertDialog
         solo.goBack();
-
-        // check for alertdialog
         assertTrue(solo.waitForText("Cancel creation of group?"));
         solo.clickOnButton("OK");
-
         solo.assertCurrentActivity("Wrong activity", MyGroupsActivity.class);
         solo.goBack();
     }

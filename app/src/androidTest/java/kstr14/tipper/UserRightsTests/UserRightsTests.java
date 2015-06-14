@@ -60,7 +60,7 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
 
     /**
      * Tests a successful creation of a Tip and that the creator of the Tip cannot
-     * upvote or downvote for his own tip
+     * upvote or downvote his own tip
      */
     public void testUpvoteDownvoteOwnTip() {
         // click on add button on actionBar and check we get to CreateTipActivity
@@ -102,7 +102,6 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         Button createButton = (Button) solo.getView(R.id.createTip_b_create);
         solo.clickOnView(createButton);
         solo.assertCurrentActivity("Wrong activity", MainActivity.class);
-
         solo.sleep(TIME_OUT);
         ListView listView = (ListView) solo.getCurrentActivity().findViewById(R.id.main_lv_tips);
         assertNotNull(listView);
@@ -113,7 +112,7 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         solo.sleep(TIME_OUT);
         solo.assertCurrentActivity("Wrong activity", ShowTipActivity.class);
 
-        // check clicks on upvote and downvote is not possible
+        // check clicks on upvote and downvote are not possible
         ImageButton upVoteButton = (ImageButton) solo.getView(R.id.showTip_ib_upvote);
         TextView upvotesView = (TextView) solo.getView(R.id.showTip_tv_upvotes);
         int upvotes = Integer.parseInt(upvotesView.getText().toString());
@@ -134,7 +133,8 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
     }
 
     /**
-     * Tests that the creator of a Tip cannot delete the Tip
+     * Tests that user that is not creator of tip or creator of group containing the tip,
+     * cannot delete a tip
      */
     public void testDeleteTipWithoutRights() {
         // create a tip as current user

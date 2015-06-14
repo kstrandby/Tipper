@@ -21,7 +21,9 @@ import kstr14.tipper.Application;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
-
+/**
+ * Activity showing references to all external resources used in the application
+ */
 public class AboutActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String ACTIVITY_ID = "AboutActivity";
@@ -30,16 +32,12 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
 
     private GoogleApiClient googleApiClient;
 
-    private String sourceActivity;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        sourceActivity = getIntent().getExtras().getString("source");
 
         googleApiClient =  new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -51,7 +49,9 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
         aboutText = (TextView) findViewById(R.id.aboutText);
 
         String about = "<b>Google Play Services:</b><br>"
-                + "Google+ login and sharing<br><br>"
+                + "Google+ login, sharing, maps<br><br>"
+                + "<b>Facebook SDK:</b><br>"
+                + "Facebook login and sharing"
                 + "<b>Parse:</b><br>"
                 + "Connection to Parse database using Parse API<br><br>"
                 + "<b>javax.mail:</b><br>"
@@ -85,13 +85,14 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
         return true;
     }
 
+    /**
+     * Handles ActionBar item clicks
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -127,6 +128,7 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
             try {
                 ((Application) getApplicationContext()).getCurrentUser().unpin();
             } catch (ParseException e) {
+                Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -135,23 +137,16 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
             startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
     /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

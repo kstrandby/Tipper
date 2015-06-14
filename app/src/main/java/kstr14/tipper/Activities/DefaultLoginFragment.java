@@ -56,17 +56,23 @@ import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
-public class DefaultLoginFragment extends Fragment implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * Fragment for showing default login UI containing fields for username and password
+ * along with buttons for login, sign up as well as Google+ and Facebook login
+ */
+public class DefaultLoginFragment extends Fragment
+        implements View.OnClickListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     private static final String ACTIVITY_ID = "LoginActivity";
 
     public static final int GOOGLE_SIGN_IN = 1;
 
-    private boolean googleSignInClicked;
-    private boolean intentInProgress;
+    // UI elements
     private ImageView tipper;
     private Bitmap tipperBitmap;
-
     private LoginButton facebookButton;
     private SignInButton googleButton;
     private TextView forgotPassword;
@@ -75,7 +81,10 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
     private Activity loginActivity;
     private Context context;
 
+    // Google+ sign in
     private GoogleApiClient googleApiClient;
+    private boolean googleSignInClicked;
+    private boolean intentInProgress;
 
 
     @Override
@@ -86,22 +95,19 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         FacebookSdk.sdkInitialize(context);
         callbackManager = CallbackManager.Factory.create();
 
+        // setup UI elements
         View view = inflater.inflate(R.layout.fragment_default_login, container, false);
         view.findViewById(R.id.google_sign_in_button).setOnClickListener(this);
-
         tipper = (ImageView) view.findViewById(R.id.app_logo);
-        System.out.println("setting bitmap");
 
         tipperBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.tipper, 256, 256);
         tipper.setImageBitmap(tipperBitmap);
-        //setBitmap();
         forgotPassword = (TextView) view.findViewById(R.id.forgotPasswordButtonDefaultLoginFragment);
         forgotPassword.setOnClickListener(this);
 
         // setup facebook login
         facebookButton = (LoginButton) view.findViewById(R.id.facebook_sign_in_button);
         facebookButton.setReadPermissions(Arrays.asList("public_profile", "email"));
-
         facebookButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -116,10 +122,12 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
 
             @Override
             public void onError(FacebookException e) {
-                Log.e(ACTIVITY_ID, "Facebook login failed: " + e.getStackTrace().toString());
+                Log.e(ACTIVITY_ID, "Facebook login failed: " + e.getMessage());
+                e.printStackTrace();
             }
         });
-        // setup the google api and signin button
+
+        // setup the google api and sign in button
         googleApiClient = new GoogleApiClient.Builder(view.getContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -131,11 +139,10 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         facebookButton.setFragment(this);
 
         return view;
-
     }
 
     /**
-     * Finds the TextView inside the Google+ SignInButton and sets the text
+     * Finds the TextView inside the Google+ SignInButton and sets the tex
      *
      * @param signInButton
      * @param text
@@ -152,29 +159,22 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }
     }
 
-    /*
-    public void setBitmap() {
-        if (tipperBitmap != null) {
-            tipperBitmap.recycle();
-            tipperBitmap = null;
-        }
-        tipperBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.tipper, 256, 256);
-        tipper.setImageBitmap(tipperBitmap);
-    }
-    */
-
+    /**
+     * Handles GoogleApiClient connection failure
+     *
+     * @param result
+     */
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         if (!intentInProgress) {
             if (googleSignInClicked && result.hasResolution()) {
-                // The user has already clicked 'sign-in' so we attempt to resolve all
-                // errors until the user is signed in, or they cancel.
+                // Attempt to resolve errors
                 try {
                     result.startResolutionForResult(loginActivity, GOOGLE_SIGN_IN);
                     intentInProgress = true;
                 } catch (IntentSender.SendIntentException e) {
                     // The intent was canceled before it was sent.  Return to the default
-                    // state and attempt to connect to get an updated ConnectionResult.
+                    // state and attempt to connect again
                     intentInProgress = false;
                     googleApiClient.connect();
                 }
@@ -182,6 +182,13 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }
     }
 
+    /**
+     * Handles activity results after Google+ sign in and Facebook sign in
+     *
+     * @param requestCode
+     * @param responseCode
+     * @param intent
+     */
     @Override
     public void onActivityResult(int requestCode, int responseCode, Intent intent) {
         if (requestCode == GOOGLE_SIGN_IN) {
@@ -200,6 +207,11 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
     }
 
 
+    /**
+     * Handles onClick events for Google+ sign in button and forgot password button
+     *
+     * @param view
+     */
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.google_sign_in_button && !googleApiClient.isConnecting()) {
@@ -208,8 +220,10 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
             googleApiClient.connect();
         } else if (view.getId() == R.id.forgotPasswordButtonDefaultLoginFragment) {
             // forgot password clicked
-            LinearLayout.LayoutParams layoutParams = new  LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
             layoutParams.setMargins(50, 0, 50, 0);
+
+            // set up AlertDialog for user to enter his/her email
             AlertDialog.Builder forgotPasswordDialog = new AlertDialog.Builder(loginActivity);
             forgotPasswordDialog.setTitle("Forgot password?");
             final TextView enterEmailText = new TextView(loginActivity);
@@ -236,10 +250,12 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                         @Override
                         public void done(String response, ParseException e) {
                             if (e == null) {
-                                if(response.equals("Email sent!")) {
+                                if (response.equals("Email sent!")) {
+                                    Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
                                     showEnterOneTimePasswordDialog(email);
                                 }
                             } else {
+                                Toast.makeText(context, "Error sending password reset email", Toast.LENGTH_SHORT).show();
                                 Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
                                 e.printStackTrace();
                             }
@@ -257,11 +273,19 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }
     }
 
+    /**
+     * Shows a Dialog prompting the user for the one-time password just emailed to the user
+     * Checks the entered one-time password with the database and in turn calls showEnterNewPasswordDialog,
+     * if the password was correct
+     *
+     * @param email
+     */
     public void showEnterOneTimePasswordDialog(final String email) {
+        // set up Dialog
         AlertDialog.Builder enterOneTimePasswordDialog = new AlertDialog.Builder(loginActivity);
         LinearLayout linearLayout = new LinearLayout(loginActivity);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams layoutParams = new  LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
         layoutParams.setMargins(50, 0, 50, 0);
         enterOneTimePasswordDialog.setTitle("Reset Password");
         TextView enterOneTimePasswordText = new TextView(loginActivity);
@@ -276,6 +300,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         enterOneTimePasswordDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                // check entered password with database
                 final String enteredPassword = oneTimePasswordInput.getText().toString();
                 ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
                 query.whereEqualTo("email", email);
@@ -297,10 +322,18 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         enterOneTimePasswordDialog.show();
     }
 
+    /**
+     * Shows a Dialog prompting the user to enter a new password
+     * Validates the entered password, saves it to the database if valid and sends
+     * the user to MainActivity
+     *
+     * @param user
+     */
     public void showEnterNewPasswordDialog(final TipperUser user) {
+        // set up Dialog
         LinearLayout linearLayout = new LinearLayout(loginActivity);
         linearLayout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams layoutParams = new  LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
         layoutParams.setMargins(50, 0, 50, 0);
         TextView enterPassword1 = new TextView(loginActivity);
         enterPassword1.setText("Enter new password:");
@@ -334,6 +367,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 positive.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        // input validation
                         String password1 = password1Input.getText().toString();
                         String password2 = password2Input.getText().toString();
                         if (!LoginActivity.validatePassword(password1, password2)) {
@@ -341,6 +375,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                         } else if (!LoginActivity.passwordLongEnough(password1)) {
                             Toast.makeText(context, "Password too short - must be minimum 8 characters.", Toast.LENGTH_SHORT).show();
                         } else {
+                            // save new password, dismiss Dialog and send the user to MainActivity
                             String hashed = BCrypt.hashpw(password1, BCrypt.gensalt());
                             user.setPassword(hashed);
                             user.saveInBackground();
@@ -364,13 +399,22 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         enterNewPasswordDialog.show();
     }
 
-
+    /**
+     * Called when GoogleApiClient is connected
+     *
+     * @param connectionHint
+     */
     @Override
     public void onConnected(Bundle connectionHint) {
         googleSignInClicked = false;
         handleGoogleUser();
     }
 
+    /**
+     * Called when GoogleApiClient is suspended
+     *
+     * @param i
+     */
     @Override
     public void onConnectionSuspended(int i) {
         googleApiClient.connect();
@@ -379,10 +423,16 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
     @Override
     public void onStart() {
         super.onStart();
-        googleApiClient.connect();
     }
 
-
+    /**
+     * Handles Facebook sign in:
+     * Creates an associated TipperUser account, if the Facebook user signs in for the
+     * first time, and otherwise fetches the associated TipperUser, saves it as the global
+     * variable and sends the user to MainActivity
+     *
+     * @param loginResult
+     */
     public void handleFacebookUser(LoginResult loginResult) {
         final AccessToken accessToken = loginResult.getAccessToken();
         final TipperUser tUser = new TipperUser();
@@ -400,34 +450,45 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 query.getFirstInBackground(new GetCallback<TipperUser>() {
                     @Override
                     public void done(TipperUser tipperUser, ParseException e) {
-                        if (tipperUser == null) {
-                            // facebook user is new, create new TipperUser account
-                            Log.d(ACTIVITY_ID, "Created new facebook user");
-                            tUser.setEmail(email);
-                            tUser.setUuidString(uuid);
-                            tUser.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
-                            tUser.setFacebookUser(true);
-                            tUser.setGoogleUser(false);
-                            try {
-                                tUser.save();
-                            } catch (ParseException exception) {
-                                exception.printStackTrace();
+                        if (e == null) {
+                            if (tipperUser == null) {
+                                try {
+                                    if (LoginActivity.emailAlreadyExists(email)) {
+                                        Toast.makeText(context, "Account already exists with this email.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        // facebook user is new, create new TipperUser account
+                                        Log.d(ACTIVITY_ID, "Created new facebook user");
+                                        tUser.setEmail(email);
+                                        tUser.setUuidString(uuid);
+                                        tUser.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
+                                        tUser.setFacebookUser(true);
+                                        tUser.setGoogleUser(false);
+                                        try {
+                                            tUser.save();
+                                        } catch (ParseException exception) {
+                                            exception.printStackTrace();
+                                        }
+                                        ((Application) loginActivity.getApplication()).setCurrentUser(tUser);
+                                        tUser.pinInBackground();
+                                        Intent intent = new Intent(context, MainActivity.class);
+                                        intent.putExtra("uuid", tUser.getUuidString());
+                                        startActivity(intent);
+                                    }
+                                } catch (ParseException e1) {
+                                    e1.printStackTrace();
+                                }
+                            } else {
+                                // facebook user exist
+                                Log.d(ACTIVITY_ID, "Facebook user exists");
+                                ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
+                                tipperUser.pinInBackground();
+                                Intent intent = new Intent(context, MainActivity.class);
+                                intent.putExtra("uuid", uuid);
+                                startActivity(intent);
                             }
-                            ((Application) loginActivity.getApplication()).setCurrentUser(tUser);
-                            tUser.pinInBackground();
-                            Intent intent = new Intent(context, MainActivity.class);
-                            intent.putExtra("uuid", tUser.getUuidString());
-                            startActivity(intent);
-
                         } else {
-                            // facebook user exist
-                            Log.d(ACTIVITY_ID, "Facebook user exists");
-                            ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
-                            tipperUser.pinInBackground();
-                            Intent intent = new Intent(context, MainActivity.class);
-                            intent.putExtra("uuid", uuid);
-                            startActivity(intent);
-
+                            Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                            e.printStackTrace();
                         }
                     }
                 });
@@ -435,6 +496,12 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }).executeAsync();
     }
 
+    /**
+     * Handles Google+ sign in:
+     * Creates an associated TipperUser account, if the Google+ user signs in for the
+     * first time, and otherwise fetches the associated TipperUser, saves it as the global
+     * variable and sends the user to MainActivity
+     */
     public void handleGoogleUser() {
         try {
             if (Plus.PeopleApi.getCurrentPerson(googleApiClient) != null) {
@@ -443,57 +510,50 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 final String email = Plus.AccountApi.getAccountName(googleApiClient);
                 final String uuid = person.getId();
 
-                // validation
+                Log.d(ACTIVITY_ID, "Google+ login: Name: " + name + ", email: " + email + ", ID: " + uuid);
 
-                    Log.d(ACTIVITY_ID, "Google+ login: Name: " + name + ", email: " + email + ", ID: " + uuid);
-
-                    // check if user already exist
-                    ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
-                    query.whereEqualTo("uuid", uuid);
-                    query.getFirstInBackground(new GetCallback<TipperUser>() {
-                        @Override
-                        public void done(TipperUser tipperUser, ParseException e) {
-                            if (tipperUser == null) {
-                                try {
-                                    if (LoginActivity.emailAlreadyExists(email)) {
-                                        Toast.makeText(context, "Account already exists with this email.", Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        // google user is new - creating a TipperUser account
-                                        TipperUser user = new TipperUser();
-                                        user.setUuidString(uuid);
-                                        user.setEmail(email);
-                                        user.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
-                                        user.setGoogleUser(true);
-                                        user.setFacebookUser(false);
-                                        try {
-                                            user.save();
-                                        } catch (ParseException e1) {
-                                            e1.printStackTrace();
-                                        }
-                                        ((Application) loginActivity.getApplication()).setCurrentUser(user);
-                                        user.pinInBackground();
-                                        Intent intent = new Intent(context, MainActivity.class);
-                                        intent.putExtra("uuid", user.getUuidString());
-                                        startActivity(intent);
+                // check if user already exist
+                ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+                query.whereEqualTo("uuid", uuid);
+                query.getFirstInBackground(new GetCallback<TipperUser>() {
+                    @Override
+                    public void done(TipperUser tipperUser, ParseException e) {
+                        if (tipperUser == null) {
+                            try {
+                                if (LoginActivity.emailAlreadyExists(email)) {
+                                    Toast.makeText(context, "Account already exists with this email.", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // google user is new - creating a TipperUser account
+                                    TipperUser user = new TipperUser();
+                                    user.setUuidString(uuid);
+                                    user.setEmail(email);
+                                    user.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
+                                    user.setGoogleUser(true);
+                                    user.setFacebookUser(false);
+                                    try {
+                                        user.save();
+                                    } catch (ParseException e1) {
+                                        e1.printStackTrace();
                                     }
-                                } catch (ParseException e1) {
-                                    e1.printStackTrace();
+                                    ((Application) loginActivity.getApplication()).setCurrentUser(user);
+                                    user.pinInBackground();
+                                    Intent intent = new Intent(context, MainActivity.class);
+                                    intent.putExtra("uuid", user.getUuidString());
+                                    startActivity(intent);
                                 }
-
-
-                            } else {
-                                // google user is an existing TipperUser, save current user and continue
-                                ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
-                                tipperUser.pinInBackground();
-                                Intent intent = new Intent(context, MainActivity.class);
-                                intent.putExtra("uuid", uuid);
-                                startActivity(intent);
+                            } catch (ParseException e1) {
+                                e1.printStackTrace();
                             }
-
+                        } else {
+                            // google user is an existing TipperUser, save current user and continue
+                            ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
+                            tipperUser.pinInBackground();
+                            Intent intent = new Intent(context, MainActivity.class);
+                            intent.putExtra("uuid", uuid);
+                            startActivity(intent);
                         }
-                    });
-
-
+                    }
+                });
             } else {
                 Log.e(ACTIVITY_ID, "Google Person is null");
             }
@@ -502,17 +562,14 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }
     }
 
+    /**
+     * Makes sure the GoogleApiClient is disconnected onStop of Activity
+     */
     @Override
     public void onStop() {
         super.onStop();
         if (googleApiClient.isConnected()) {
             googleApiClient.disconnect();
         }
-        /*
-        if (tipperBitmap != null) {
-            tipperBitmap.recycle();
-            tipper = null;
-        }
-        */
     }
 }

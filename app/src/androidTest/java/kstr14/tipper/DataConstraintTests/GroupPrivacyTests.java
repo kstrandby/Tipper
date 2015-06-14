@@ -107,7 +107,7 @@ public class GroupPrivacyTests extends ActivityInstrumentationTestCase2<LoginAct
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
         solo.enterText(titleInput, "TestTitle");
 
-        // find spinner and click public group (item number 1 in spinner list)
+        // find spinner and click public group (item number 2 in spinner list)
         ArrayList<Spinner> currentSpinners = solo.getCurrentViews(Spinner.class);
         assertEquals(2, currentSpinners.size());
         solo.clickOnView(solo.getCurrentActivity().findViewById(R.id.createTip_s_groupChoice));

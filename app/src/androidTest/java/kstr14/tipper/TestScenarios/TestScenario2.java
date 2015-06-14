@@ -57,8 +57,8 @@ public class TestScenario2 extends ActivityInstrumentationTestCase2<LoginActivit
         solo.enterText(usernameInput, "kristine");
         solo.enterText(passwordInput, "password");
         solo.clickOnView(loginButton);
-
         solo.sleep(TIME_OUT);
+
         // test we are in MainActivity and wait TIME_OUT value until tips are loaded
         solo.assertCurrentActivity("Wrong activity", MainActivity.class);
         solo.sleep(TIME_OUT * 2);
@@ -68,7 +68,7 @@ public class TestScenario2 extends ActivityInstrumentationTestCase2<LoginActivit
         solo.clickOnView(solo.getCurrentActivity().findViewById(R.id.main_menu_search));
         solo.assertCurrentActivity("Wrong activity", SearchTipActivity.class);
 
-        // enter query and search for tips
+        // enter query and search for tips containing the word "free"
         EditText keywordInput = (EditText) solo.getCurrentActivity().findViewById(R.id.searchTip_ed_keywords);
         solo.enterText(keywordInput, "free");
         CheckBox drinksCheckBox = (CheckBox) solo.getCurrentActivity().findViewById(R.id.searchTip_cb_drinks);
@@ -87,6 +87,8 @@ public class TestScenario2 extends ActivityInstrumentationTestCase2<LoginActivit
         assertTrue(listView.getAdapter().getCount() > 0);
         solo.clickInList(1);
         solo.sleep(TIME_OUT);
+
+        // check that we are in ShowTipActivity and tip can be added to favourites list
         solo.assertCurrentActivity("Wrong activity", ShowTipActivity.class);
         ImageButton favouritesButton = (ImageButton) solo.getCurrentActivity().findViewById(R.id.showTip_ib_favourites);
         solo.clickOnView(favouritesButton);
@@ -103,7 +105,7 @@ public class TestScenario2 extends ActivityInstrumentationTestCase2<LoginActivit
         Tip tip = (Tip) listView.getAdapter().getItem(0);
         assertTrue(tip.getTitle().toLowerCase().contains("free"));
 
-        // and log out
+        // log out
         solo.clickOnMenuItem("Log out");
     }
 }

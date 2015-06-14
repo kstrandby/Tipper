@@ -1,6 +1,5 @@
 package kstr14.tipper.Activities;
 
-
 import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,7 +9,7 @@ import android.view.ViewGroup;
 import kstr14.tipper.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment for showing LEAVE button in ShowGroupActivity
  */
 public class GroupMemberFragment extends Fragment {
 
