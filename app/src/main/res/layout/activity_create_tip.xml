@@ -41,7 +41,7 @@
         android:layout_height="wrap_content"
         android:text="@string/b_text_create"
         android:id="@+id/createTip_b_create"
-        android:onClick="createTip"
+        android:onClick="createTipClicked"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="30dp" />

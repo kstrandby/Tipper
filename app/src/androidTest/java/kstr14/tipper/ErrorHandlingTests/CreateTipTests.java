@@ -79,6 +79,10 @@ public class CreateTipTests extends ActivityInstrumentationTestCase2<LoginActivi
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
 
         solo.goBack();
+
+        // check for alertdialog
+        assertTrue(solo.waitForText("Cancel creation of tip?"));
+        solo.clickOnButton("OK");
     }
 
     /**
@@ -118,6 +122,9 @@ public class CreateTipTests extends ActivityInstrumentationTestCase2<LoginActivi
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
 
         solo.goBack();
+        // check for alertdialog
+        assertTrue(solo.waitForText("Cancel creation of tip?"));
+        solo.clickOnButton("OK");
     }
 
     /**
@@ -158,6 +165,9 @@ public class CreateTipTests extends ActivityInstrumentationTestCase2<LoginActivi
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
 
         solo.goBack();
+        // check for alertdialog
+        assertTrue(solo.waitForText("Cancel creation of tip?"));
+        solo.clickOnButton("OK");
     }
 
 }

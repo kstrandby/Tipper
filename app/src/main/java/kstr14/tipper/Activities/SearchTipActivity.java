@@ -234,6 +234,37 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     /**
+     * Used for navigation with back button on actionbar
+     *
+     * @return
+     */
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    /**
+     * Used for navigation with back button on actionbar
+     *
+     * @return
+     */
+    @Override
+    public Intent getParentActivityIntent() {
+        return getParentActivity();
+    }
+
+    /**
+     * Used for navigation with back button on actionbar
+     * Calls onBackPressed to implement same behaviour as hardware back button clicks
+     *
+     * @return
+     */
+    private Intent getParentActivity() {
+        onBackPressed();
+        return null;
+    }
+
+    /**
      * methods below required only for use of GoogleApiClient, which is necessary for logout **
      */
     @Override

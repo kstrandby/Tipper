@@ -1,6 +1,7 @@
 package kstr14.tipper.DataConstraintTests;
 
 import android.test.ActivityInstrumentationTestCase2;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -41,7 +42,7 @@ public class GroupPrivacyTests extends ActivityInstrumentationTestCase2<LoginAct
         EditText usernameInput = (EditText) solo.getView(R.id.usernameDefaultLoginFragment);
         EditText passwordInput = (EditText) solo.getView(R.id.passwordDefaultLoginFragment);
         Button loginButton = (Button) solo.getView(R.id.loginButtonDefaultLoginFragment);
-        solo.enterText(usernameInput, "kristine");
+        solo.enterText(usernameInput, "TestUser1");
         solo.enterText(passwordInput, "password");
         solo.clickOnView(loginButton);
 
@@ -82,11 +83,11 @@ public class GroupPrivacyTests extends ActivityInstrumentationTestCase2<LoginAct
         solo.assertCurrentActivity("Wrong activity", CreateTipActivity.class);
         solo.enterText(titleInput, "TestTitle");
 
-        // find spinner and click Caulfield group (item number 2 in spinner list)
-        ArrayList<Spinner> currentSpinners = solo.getCurrentViews(Spinner.class);
-        assertEquals(2, currentSpinners.size());
-        solo.clickOnView(solo.getCurrentActivity().findViewById(R.id.createTip_s_groupChoice));
-        solo.clickInList(2);
+        // find spinner and click Caulfield group (item number 1 in spinner list)
+        View spinner = solo.getView(Spinner.class, 1);
+        assertNotNull(spinner);
+        solo.clickOnView(spinner);
+        solo.clickInList(1);
 
         // attempt to click create button
         createButton = (Button) solo.getView(R.id.createTip_b_create);
@@ -110,7 +111,7 @@ public class GroupPrivacyTests extends ActivityInstrumentationTestCase2<LoginAct
         ArrayList<Spinner> currentSpinners = solo.getCurrentViews(Spinner.class);
         assertEquals(2, currentSpinners.size());
         solo.clickOnView(solo.getCurrentActivity().findViewById(R.id.createTip_s_groupChoice));
-        solo.clickInList(1);
+        solo.clickInList(2);
 
         // attempt to click create button
         createButton = (Button) solo.getView(R.id.createTip_b_create);

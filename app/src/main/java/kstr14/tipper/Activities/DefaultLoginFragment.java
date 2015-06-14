@@ -91,7 +91,10 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
 
         tipper = (ImageView) view.findViewById(R.id.app_logo);
         System.out.println("setting bitmap");
-        setBitmap();
+
+        tipperBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.tipper, 256, 256);
+        tipper.setImageBitmap(tipperBitmap);
+        //setBitmap();
         forgotPassword = (TextView) view.findViewById(R.id.forgotPasswordButtonDefaultLoginFragment);
         forgotPassword.setOnClickListener(this);
 
@@ -149,6 +152,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         }
     }
 
+    /*
     public void setBitmap() {
         if (tipperBitmap != null) {
             tipperBitmap.recycle();
@@ -157,6 +161,7 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         tipperBitmap = ImageHelper.decodeBitmapFromResource(getResources(), R.drawable.tipper, 256, 256);
         tipper.setImageBitmap(tipperBitmap);
     }
+    */
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
@@ -437,43 +442,57 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
                 final String name = person.getDisplayName();
                 final String email = Plus.AccountApi.getAccountName(googleApiClient);
                 final String uuid = person.getId();
-                Log.d(ACTIVITY_ID, "Google+ login: Name: " + name + ", email: " + email + ", ID: " + uuid);
 
-                // check if user already exist
-                ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
-                query.whereEqualTo("uuid", uuid);
-                query.getFirstInBackground(new GetCallback<TipperUser>() {
-                    @Override
-                    public void done(TipperUser tipperUser, ParseException e) {
-                        if (tipperUser == null) {
-                            // google user is new - creating a TipperUser account
-                            TipperUser user = new TipperUser();
-                            user.setUuidString(uuid);
-                            user.setEmail(email);
-                            user.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
-                            user.setGoogleUser(true);
-                            user.setFacebookUser(false);
-                            try {
-                                user.save();
-                            } catch (ParseException e1) {
-                                e1.printStackTrace();
+                // validation
+
+                    Log.d(ACTIVITY_ID, "Google+ login: Name: " + name + ", email: " + email + ", ID: " + uuid);
+
+                    // check if user already exist
+                    ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
+                    query.whereEqualTo("uuid", uuid);
+                    query.getFirstInBackground(new GetCallback<TipperUser>() {
+                        @Override
+                        public void done(TipperUser tipperUser, ParseException e) {
+                            if (tipperUser == null) {
+                                try {
+                                    if (LoginActivity.emailAlreadyExists(email)) {
+                                        Toast.makeText(context, "Account already exists with this email.", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        // google user is new - creating a TipperUser account
+                                        TipperUser user = new TipperUser();
+                                        user.setUuidString(uuid);
+                                        user.setEmail(email);
+                                        user.setUsername(name.replaceAll("\\s", "") + uuid); // username is name concatenated with ID, as usernames have to be unique
+                                        user.setGoogleUser(true);
+                                        user.setFacebookUser(false);
+                                        try {
+                                            user.save();
+                                        } catch (ParseException e1) {
+                                            e1.printStackTrace();
+                                        }
+                                        ((Application) loginActivity.getApplication()).setCurrentUser(user);
+                                        user.pinInBackground();
+                                        Intent intent = new Intent(context, MainActivity.class);
+                                        intent.putExtra("uuid", user.getUuidString());
+                                        startActivity(intent);
+                                    }
+                                } catch (ParseException e1) {
+                                    e1.printStackTrace();
+                                }
+
+
+                            } else {
+                                // google user is an existing TipperUser, save current user and continue
+                                ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
+                                tipperUser.pinInBackground();
+                                Intent intent = new Intent(context, MainActivity.class);
+                                intent.putExtra("uuid", uuid);
+                                startActivity(intent);
                             }
-                            ((Application) loginActivity.getApplication()).setCurrentUser(user);
-                            user.pinInBackground();
-                            Intent intent = new Intent(context, MainActivity.class);
-                            intent.putExtra("uuid", user.getUuidString());
-                            startActivity(intent);
-                        } else {
-                            // google user is an existing TipperUser, save current user and continue
-                            ((Application) loginActivity.getApplication()).setCurrentUser(tipperUser);
-                            tipperUser.pinInBackground();
-                            Intent intent = new Intent(context, MainActivity.class);
-                            intent.putExtra("uuid", uuid);
-                            startActivity(intent);
-                        }
 
-                    }
-                });
+                        }
+                    });
+
 
             } else {
                 Log.e(ACTIVITY_ID, "Google Person is null");
@@ -489,9 +508,11 @@ public class DefaultLoginFragment extends Fragment implements View.OnClickListen
         if (googleApiClient.isConnected()) {
             googleApiClient.disconnect();
         }
+        /*
         if (tipperBitmap != null) {
             tipperBitmap.recycle();
             tipper = null;
         }
+        */
     }
 }

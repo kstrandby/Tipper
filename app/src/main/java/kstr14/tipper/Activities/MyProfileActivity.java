@@ -70,35 +70,8 @@ public class MyProfileActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     private Intent getParentActivity() {
-        Intent intent = null;
-        if (sourceActivity.equals("CreateGroupActivity")) {
-            intent = new Intent(this, CreateGroupActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("CreateTipActivity")) {
-            intent = new Intent(this, CreateTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("MainActivity")) {
-            intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("MyGroupsActivity")) {
-            intent = new Intent(this, MyGroupsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ListActivity")) {
-            intent = new Intent(this, ListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("SearchTipActivity")) {
-            intent = new Intent(this, SearchTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ShowGroupActivity")) {
-            intent = new Intent(this, ShowGroupActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ShowTipActivity")) {
-            intent = new Intent(this, ShowTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else {
-            Log.d(ACTIVITY_ID, "No sourceActivity specified.");
-        }
-        return intent;
+        onBackPressed();
+        return null;
     }
 
     @Override

@@ -82,7 +82,12 @@ public class TipperUser extends ParseObject {
     }
 
     public String getUuidString() {
-        return getString("uuid");
+        try {
+            return fetchIfNeeded().getString("uuid");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void setGoogleUser(boolean google) {
@@ -110,6 +115,7 @@ public class TipperUser extends ParseObject {
         if (other == this) return true;
         if (!(other instanceof TipperUser))return false;
         TipperUser otherUser = (TipperUser)other;
+        System.out.println(this + " " + otherUser + " "+ this.getUuidString() + " " + otherUser.getUuidString());
         if(this.getUuidString().equals(otherUser.getUuidString())) return true;
         else return false;
     }

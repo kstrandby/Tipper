@@ -101,32 +101,37 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
     private void updateGroupList() {
         // update current user's group list
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
-        user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
-            @Override
-            public void done(List<Group> list, ParseException e) {
-                progressDialog.dismiss();
-                if (list != null && !list.isEmpty()) {
-                    myGroups = list;
-                    listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
-                } else if (e == null) {
-                    // means that the user is not member of any groups
-                    TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
-                    msg.setText("You are currently non member of any groups.");
-                    listView.setEmptyView(msg);
-                    Log.d(ACTIVITY_ID, "Did not find any groups.");
-                } else if (e != null) {
-                    // means connection error
-                    TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
-                    msg.setText("Connection error.\n" +
-                            "Please make sure phone is connected to the internet.");
-                    listView.setEmptyView(msg);
-                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
-                } else {
-                    e.printStackTrace();
-                }
+        if(user != null) {
+            user.getGroups().getQuery().findInBackground(new FindCallback<Group>() {
+                @Override
+                public void done(List<Group> list, ParseException e) {
+                    progressDialog.dismiss();
+                    if (list != null && !list.isEmpty()) {
+                        myGroups = list;
+                        listView.setAdapter(new GroupBaseAdapter(getApplicationContext(), myGroups));
+                    } else if (e == null) {
+                        // means that the user is not member of any groups
+                        TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
+                        msg.setText("You are currently non member of any groups.");
+                        listView.setEmptyView(msg);
+                        Log.d(ACTIVITY_ID, "Did not find any groups.");
+                    } else if (e != null) {
+                        // means connection error
+                        TextView msg = (TextView) findViewById(R.id.myGroups_tv_empty);
+                        msg.setText("Connection error.\n" +
+                                "Please make sure phone is connected to the internet.");
+                        listView.setEmptyView(msg);
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
+                    } else {
+                        e.printStackTrace();
+                    }
 
-            }
-        });
+                }
+            });
+        } else {
+            Log.e(ACTIVITY_ID, "User object is null");
+        }
 
         // load all group names into list to use for searchview
         ParseQuery<Group> query = ParseQuery.getQuery("Group");
@@ -242,35 +247,8 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
     }
 
     private Intent getParentActivity() {
-        Intent intent = null;
-        if (sourceActivity.equals("CreateGroupActivity")) {
-            intent = new Intent(this, CreateGroupActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("CreateTipActivity")) {
-            intent = new Intent(this, CreateTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("MainActivity")) {
-            intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("MyGroupsActivity")) {
-            intent = new Intent(this, MyGroupsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ListActivity")) {
-            intent = new Intent(this, ListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("SearchTipActivity")) {
-            intent = new Intent(this, SearchTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ShowGroupActivity")) {
-            intent = new Intent(this, ShowGroupActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ShowTipActivity")) {
-            intent = new Intent(this, ShowTipActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else {
-            Log.d(ACTIVITY_ID, "No sourceActivity specified.");
-        }
-        return intent;
+        onBackPressed();
+        return null;
     }
 
     @Override

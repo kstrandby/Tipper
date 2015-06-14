@@ -341,25 +341,13 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
 
     /**
      * Used for navigation with back button on actionbar
-     * Specifies which Activity to go back to in which case
-     * Note, in all cases, this back button behaves like the
-     * hardware back button
+     * Calls onBackPressed to implement same behaviour as hardware back button clicks
      *
      * @return
      */
     private Intent getParentActivity() {
-        Intent intent = null;
-        if (sourceActivity.equals("MainActivity")) {
-            intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ShowGroupActivity")) {
-            intent = new Intent(this, ShowGroupActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        } else if (sourceActivity.equals("ListActivity")) {
-            intent = new Intent(this, ListActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        }
-        return intent;
+        onBackPressed();
+        return null;
     }
 
     /**

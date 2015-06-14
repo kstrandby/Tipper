@@ -32,7 +32,7 @@ public class CreateGroupTests extends ActivityInstrumentationTestCase2<LoginActi
         EditText usernameInput = (EditText) solo.getView(R.id.usernameDefaultLoginFragment);
         EditText passwordInput = (EditText) solo.getView(R.id.passwordDefaultLoginFragment);
         Button loginButton = (Button) solo.getView(R.id.loginButtonDefaultLoginFragment);
-        solo.enterText(usernameInput, "kristine");
+        solo.enterText(usernameInput, "TestUser1");
         solo.enterText(passwordInput, "password");
         solo.clickOnView(loginButton);
 
@@ -73,6 +73,11 @@ public class CreateGroupTests extends ActivityInstrumentationTestCase2<LoginActi
 
         // go back
         solo.goBack();
+
+        // check for alertdialog
+        assertTrue(solo.waitForText("Cancel creation of group?"));
+        solo.clickOnButton("OK");
+
         solo.assertCurrentActivity("Wrong activity", MyGroupsActivity.class);
         solo.goBack();
     }
@@ -101,6 +106,11 @@ public class CreateGroupTests extends ActivityInstrumentationTestCase2<LoginActi
 
         // go back
         solo.goBack();
+
+        // check for alertdialog
+        assertTrue(solo.waitForText("Cancel creation of group?"));
+        solo.clickOnButton("OK");
+
         solo.assertCurrentActivity("Wrong activity", MyGroupsActivity.class);
         solo.goBack();
     }

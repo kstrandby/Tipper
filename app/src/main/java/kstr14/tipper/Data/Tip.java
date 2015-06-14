@@ -148,4 +148,28 @@ public class Tip extends ParseObject {
         put("location", location);
     }
 
+    public Tip copy() {
+        Tip tip = new Tip();
+        tip.setTitle(this.getTitle());
+        tip.setDescription(this.getDescription());
+        tip.setCategory(this.getCategory());
+        tip.setPrice(this.getPrice());
+        tip.setUuidString();
+        tip.setStartDate(this.getStartDate());
+        tip.setEndDate(this.getEndDate());
+        tip.setCreator(this.getCreator());
+        tip.setDownvotes(this.getDownvotes());
+        tip.setUpvotes(this.getUpvotes());
+        if(this.getGroup() != null) {
+            tip.setGroup(this.getGroup());
+        }
+        if(this.getImage() != null) {
+            tip.setImage(this.getImage());
+        }
+        if(this.getLocation() != null) {
+            tip.setLocation(this.getLocation());
+        }
+        tip.setPrivate(this.isPrivate());
+        return tip;
+    }
 }

@@ -194,6 +194,8 @@ public class LoginActivity extends ActionBarActivity {
                     user.setEmail(email);
                     user.setGoogleUser(false);
                     user.setFacebookUser(false);
+                    user.setUuidString();
+
                     user.save();
                     app.setCurrentUser(user);
                     user.pinInBackground();
@@ -274,7 +276,7 @@ public class LoginActivity extends ActionBarActivity {
      * @return true if an account already exists with the specified email, false otherwise
      * @throws ParseException
      */
-    private boolean emailAlreadyExists(String email) throws ParseException {
+    public static boolean emailAlreadyExists(String email) throws ParseException {
         ParseQuery<TipperUser> query = ParseQuery.getQuery("TipperUser");
         query.whereEqualTo("email", email);
         List<TipperUser> result = query.find();

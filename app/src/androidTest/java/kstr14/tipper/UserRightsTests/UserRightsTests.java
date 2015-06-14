@@ -1,10 +1,12 @@
 package kstr14.tipper.UserRightsTests;
 
 import android.test.ActivityInstrumentationTestCase2;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.robotium.solo.Solo;
@@ -24,7 +26,7 @@ import kstr14.tipper.R;
 public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActivity> {
 
     private Solo solo;
-    private static final int TIME_OUT = 2000;
+    private static final int TIME_OUT = 3000;
 
     public UserRightsTests() {
         super(LoginActivity.class);
@@ -38,7 +40,7 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         EditText usernameInput = (EditText) solo.getView(R.id.usernameDefaultLoginFragment);
         EditText passwordInput = (EditText) solo.getView(R.id.passwordDefaultLoginFragment);
         Button loginButton = (Button) solo.getView(R.id.loginButtonDefaultLoginFragment);
-        solo.enterText(usernameInput, "kristine");
+        solo.enterText(usernameInput, "TestUser1");
         solo.enterText(passwordInput, "password");
         solo.clickOnView(loginButton);
 
@@ -89,6 +91,12 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         solo.clickOnText("OK");
         solo.setTimePicker(0, 8, 0);
         solo.clickOnText("OK");
+
+        // set group to -no group-
+        View spinner = solo.getView(Spinner.class, 1);
+        assertNotNull(spinner);
+        solo.clickOnView(spinner);
+        solo.clickInList(2);
 
         // click create and check that we are back to MainActivity
         Button createButton = (Button) solo.getView(R.id.createTip_b_create);
@@ -159,6 +167,12 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         solo.setTimePicker(0, 8, 0);
         solo.clickOnText("OK");
 
+        // set group to -no group-
+        View spinner = solo.getView(Spinner.class, 1);
+        assertNotNull(spinner);
+        solo.clickOnView(spinner);
+        solo.clickInList(2);
+
         // click create and check that we are back to MainActivity
         Button createButton = (Button) solo.getView(R.id.createTip_b_create);
         solo.clickOnView(createButton);
@@ -171,7 +185,7 @@ public class UserRightsTests extends ActivityInstrumentationTestCase2<LoginActiv
         solo.sleep(TIME_OUT);
         EditText usernameInput = (EditText) solo.getView(R.id.usernameDefaultLoginFragment);
         EditText passwordInput = (EditText) solo.getView(R.id.passwordDefaultLoginFragment);
-        solo.enterText(usernameInput, "TestUser1");
+        solo.enterText(usernameInput, "TestUser2");
         solo.enterText(passwordInput, "password");
         Button loginButton = (Button) solo.getView(R.id.loginButtonDefaultLoginFragment);
         solo.clickOnView(loginButton);
