@@ -40,12 +40,23 @@ import kstr14.tipper.ErrorHandler;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
-public class ShowGroupActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * Activity showing details about a group
+ * The activity shows the name and description of the group along with the image and
+ * a list of the tips in the group
+ * In addition, the activity uses two fragments to handle whether to show a Join group button
+ * or a Leave group button, according to whether the user is a member of the group or not
+ */
+public class ShowGroupActivity extends ActionBarActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "ShowGroupActivity";
 
     private Menu menu;
 
+    // UI elements
     private ParseImageView imageView;
     private ListView listView;
     private TextView descriptionView;
@@ -54,8 +65,6 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
     private Group group;
     private TipperUser currentUser;
     private TipBaseAdapter adapter;
-
-    private String sourceActivity;
 
     private GoogleApiClient googleApiClient;
 
@@ -74,8 +83,6 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
                 .addApi(Plus.API)
                 .build();
         googleApiClient.connect();
-
-        sourceActivity = getIntent().getExtras().getString("source");
 
         // initialize UI elements
         imageView = (ParseImageView) findViewById(R.id.showGroup_iv_groupImage);
@@ -119,12 +126,12 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
                                     if (group.isClosed()) listView.setVisibility(View.INVISIBLE);
                                 }
                             } else {
-                                Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                                Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                                e.printStackTrace();
                                 ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
                             }
                         }
                     });
-
                     group = object;
 
                     // set actionBar title to name of group
@@ -196,9 +203,13 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
                 }
             }
         });
-
     }
 
+    /**
+     * Called when JOIN button is clicked
+     * Adds the user to the group and the group to the user
+     * @param view
+     */
     public void joinGroup(View view) {
         group.addUser(currentUser);
         group.saveInBackground();
@@ -214,6 +225,11 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         listView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Called when LEAVE button is clicked
+     * Removes the user from the group and the group from the user
+     * @param view
+     */
     public void leaveGroup(View view) {
         group.removeUser(currentUser);
         group.saveInBackground();
@@ -231,6 +247,9 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         addItem.setVisible(false);
     }
 
+    /**
+     * Updates the list of tips by fetching the tips from the database
+     */
     public void updateTipList() {
         // fetch tips of group
         group.getTips().getQuery().findInBackground(new FindCallback<Tip>() {
@@ -241,43 +260,65 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
                     listView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
                 } else {
-                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                    e.printStackTrace();
                     ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
                 }
             }
         });
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getSupportParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     *
+     * @return
+     */
     @Override
     public Intent getParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * Behaves identically to hardware back button clicks
+     * @return
+     */
     private Intent getParentActivity() {
         onBackPressed();
         return null;
     }
 
+    /**
+     * Creates the ActionBar menu
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_show_group, menu);
         return true;
     }
 
+    /**
+     * Handles ActionBar click events
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         if (id == R.id.action_add_tip_to_group) {
             Intent intent = new Intent(ShowGroupActivity.this, CreateTipActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -335,6 +376,13 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Called when returned from creating a tip
+     * Updates the list of tips so that the newly created tip is shown
+     * @param requestCode
+     * @param resultCode
+     * @param intent
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == MainActivity.CREATE_TIP_REQUEST) {
@@ -348,17 +396,11 @@ public class ShowGroupActivity extends ActionBarActivity implements GoogleApiCli
      * methods below required only for use of GoogleApiClient, which is necessary for logout **
      */
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }
