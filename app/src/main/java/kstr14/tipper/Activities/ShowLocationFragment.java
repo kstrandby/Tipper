@@ -11,7 +11,7 @@ import android.widget.TextView;
 import kstr14.tipper.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment to show a location using a box containing TextView
  */
 public class ShowLocationFragment extends Fragment {
 
@@ -30,14 +30,13 @@ public class ShowLocationFragment extends Fragment {
         return locationView;
     }
 
-
-    // necessary as the fragment view is not created instantly - when onResume is called, the fragment is ready
-    // and we can initialize the TextView
+    /**
+     * necessary as the fragment view is not created instantly - when onResume is called, the
+     * fragment is ready and we can initialize the TextView
+     */
     @Override
     public void onResume() {
         super.onResume();
         ((MapsActivity)getActivity()).updateAddress();
     }
-
-
 }

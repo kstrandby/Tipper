@@ -38,11 +38,17 @@ import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
+/**
+ * Activity allowing a user to search for a tip by keyword, location, price and category
+ */
+public class SearchTipActivity extends ActionBarActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
-public class SearchTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "SearchTipActivity";
 
+    // UI elements
     private EditText keywordInput;
     private EditText locationInput;
     private SeekBar priceSeekBarInput;
@@ -56,7 +62,6 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     public static String defaultLocation = "Current location";
     private LatLng latLngPosition;
     private Geocoder geoCoder;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,17 +138,21 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
     }
 
-
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search_tip, menu);
         return true;
     }
 
     /**
      * Called when the SEARCH button is clicked
-     * The intent if filled with search query requirements specified
+     * The intent is filled with search query requirements specified
      * by the user on the UI (i.e. prices, keyword, etc.)
      *
      * @param view
@@ -154,13 +163,14 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         String location = locationInput.getText().toString();
 
         if(!location.equals(defaultLocation)) {
-            // search for results
+            // search for location results and save the first result
             List<Address> results = geoCoder.getFromLocationName(location, 1);
             if(results != null && !results.isEmpty()) {
                 latLngPosition = new LatLng(results.get(0).getLatitude(), results.get(0).getLongitude());
             }
         }
 
+        // set up the intent
         List<String> categories = new ArrayList<>();
         if (foodCheckBox.isChecked()) categories.add("Food");
         if (drinksCheckBox.isChecked()) categories.add("Drinks");
@@ -177,6 +187,12 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
         startActivity(intent);
     }
 
+    /**
+     * Handles ActionBar click events
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // handling action bar events
@@ -234,7 +250,7 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     /**
-     * Used for navigation with back button on actionbar
+     * Used for navigation with back button on ActionBar
      *
      * @return
      */
@@ -244,7 +260,7 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
     }
 
     /**
-     * Used for navigation with back button on actionbar
+     * Used for navigation with back button on ActionBar
      *
      * @return
      */
@@ -268,17 +284,11 @@ public class SearchTipActivity extends ActionBarActivity implements GoogleApiCli
      * methods below required only for use of GoogleApiClient, which is necessary for logout **
      */
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

@@ -7,7 +7,7 @@ import android.content.Intent;
 
 
 /**
- * Created by Kristine on 04-06-2015.
+ * Contains error handling functions
  */
 public class ErrorHandler {
 

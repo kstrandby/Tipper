@@ -18,7 +18,8 @@ import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
 /**
- * Created by Kristine on 17-05-2015.
+ * Adapter used for showing lists of Groups
+ * Each ListItem shows the name of the group and the Image of the group
  */
 public class GroupBaseAdapter extends BaseAdapter {
     private Context context;
@@ -52,7 +53,6 @@ public class GroupBaseAdapter extends BaseAdapter {
         }
 
         TextView nameView = (TextView) view.findViewById(R.id.groupItem_tv_groupName);
-        TextView locationView = (TextView) view.findViewById(R.id.groupItem_tv_location);
         ParseImageView imageView = (ParseImageView) view.findViewById(R.id.groupItem_iv_groupImage);
         nameView.setText(groups.get(position).getName());
 
@@ -65,8 +65,6 @@ public class GroupBaseAdapter extends BaseAdapter {
             Bitmap img = ImageHelper.decodeBitmapFromResource(context.getResources(), R.drawable.ic_action_group_big, 128, 128);
             imageView.setImageBitmap(Bitmap.createScaledBitmap(img, 100, 100, false));
         }
-
-
         return view;
     }
 }

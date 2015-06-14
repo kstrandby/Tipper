@@ -13,7 +13,8 @@ import java.util.List;
 import kstr14.tipper.R;
 
 /**
- * Created by Kristine on 21-05-2015.
+ * Adapter for SearchView
+ * Each item in list has a TextView containing the suggestion
  */
 public class SearchViewAdapter extends CursorAdapter {
 

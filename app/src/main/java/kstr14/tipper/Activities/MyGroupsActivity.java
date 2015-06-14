@@ -38,12 +38,20 @@ import kstr14.tipper.Data.Group;
 import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.R;
 
-public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * Activity showing ListView of current user's groups
+ * Contains a SearchView on the ActionBar allowing the user to search for groups by name
+ */
+public class MyGroupsActivity extends ActionBarActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "MyGroupsActivity";
 
     public static final int CREATE_GROUP_REQUEST = 2;
 
+    // UI elements
     private ListView listView;
     private ProgressDialog progressDialog;
 
@@ -51,8 +59,6 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
     private List<Group> myGroups;
 
     private Menu menu;
-
-    private String sourceActivity;
 
     private GoogleApiClient googleApiClient;
 
@@ -70,34 +76,37 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                 .build();
         googleApiClient.connect();
 
-        sourceActivity = getIntent().getExtras().getString("source");
-
+        // set up UI elements
         listView = (ListView) findViewById(R.id.myGroupsListView);
-
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while data is being loaded...");
         updateGroupList();
 
-        // set click listener for groups in list to move to show group activity
+        // set click listener for groups in list to move to ShowGroupActivity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // grap selected group and start intent for show group activity
+                // grab selected group and start intent for ShowGroupActivity
                 Group group = (Group) listView.getAdapter().getItem(position);
                 Intent intent = new Intent(MyGroupsActivity.this, ShowGroupActivity.class);
                 intent.putExtra("source", ACTIVITY_ID);
                 intent.putExtra("ID", group.getUuidString());
                 startActivity(intent);
-
             }
         });
     }
 
+    /**
+     * Updates the list when activity is resumed
+     */
     @Override
     public void onResume() {
         super.onResume();
         updateGroupList();
     }
 
+    /**
+     * Updates the list of groups by fetching data from the database
+     */
     private void updateGroupList() {
         // update current user's group list
         TipperUser user = ((Application) getApplicationContext()).getCurrentUser();
@@ -126,14 +135,13 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                     } else {
                         e.printStackTrace();
                     }
-
                 }
             });
         } else {
             Log.e(ACTIVITY_ID, "User object is null");
         }
 
-        // load all group names into list to use for searchview
+        // load all group names into list to use for SearchView
         ParseQuery<Group> query = ParseQuery.getQuery("Group");
         query.whereNotEqualTo("uuid", "dummy");
         query.findInBackground(new FindCallback<Group>() {
@@ -141,22 +149,26 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
             public void done(List<Group> list, ParseException e) {
                 if (list != null && !list.isEmpty()) {
                     if (e == null) {
-                        allGroups = new ArrayList<String>();
+                        allGroups = new ArrayList<>();
                         for (Group group : list) {
                             allGroups.add(group.getName().trim());
                         }
                     } else {
-                        Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                        Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 } else {
                     Log.e(ACTIVITY_ID, "Could not fetch any groups for suggestion list.");
                 }
-
             }
         });
     }
 
-
+    /**
+     * Creates the ActionBar menu as well as sets up the SearchView on the ActionBar
+     * @param menu
+     * @return
+     */
     @Override
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -172,7 +184,7 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
             searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
 
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
+                // go to ListActivity (showing search result) upon query submit
                 @Override
                 public boolean onQueryTextSubmit(String s) {
                     Intent intent = new Intent(getApplicationContext(), ListActivity.class);
@@ -182,6 +194,7 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                     return true;
                 }
 
+                // updates the query suggestions upon text change
                 @Override
                 public boolean onQueryTextChange(String query) {
                     loadHistory(query);
@@ -189,8 +202,8 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                 }
             });
 
+            // NOTE: this does not work - clicks are not being registered for some reason!
             searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-
                 @Override
                 public boolean onSuggestionSelect(int i) {
                     System.out.println("Selected " + i);
@@ -207,20 +220,21 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         return true;
     }
 
-
+    /**
+     * Loads suggestions into the suggestion list to show when user types in SearchView
+     * @param query
+     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void loadHistory(String query) {
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-
-            // Cursor
             String[] columns = new String[] { "_id", "text" };
             Object[] temp = new Object[] { 0, "default" };
 
             MatrixCursor cursor = new MatrixCursor(columns);
-
             List<String> result = new ArrayList<>();
 
+            // match the entered text with groups
             for(int i = 0;  i < allGroups.size(); i++) {
                 if(allGroups.get(i).toLowerCase().contains(query.toLowerCase())){
                     temp[0] = i;
@@ -229,6 +243,8 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
                     result.add(allGroups.get(i));
                 }
             }
+
+            // set the suggestions
             SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             final SearchView searchView = (SearchView) menu.findItem(R.id.main_menu_search).getActionView();
             searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
@@ -236,26 +252,43 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         }
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * @return
+     */
     @Override
     public Intent getSupportParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * @return
+     */
     @Override
     public Intent getParentActivityIntent() {
         return getParentActivity();
     }
 
+    /**
+     * Handles back button clicks on ActionBar
+     * Behaves identically to hardware back button clicks
+     * @return
+     */
     private Intent getParentActivity() {
         onBackPressed();
         return null;
     }
 
+    /**
+     * Handles menu item clicks
+     * @param item, the menu item clicked
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // handling action bar events
         int id = item.getItemId();
-
         if (id == R.id.favourites) {
             Intent intent = new Intent(this, ListActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -308,6 +341,13 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Called upon return from creation of group
+     * Updates the group list to fetch the new item
+     * @param requestCode
+     * @param resultCode
+     * @param intent
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if(requestCode == CREATE_GROUP_REQUEST) {
@@ -317,20 +357,13 @@ public class MyGroupsActivity extends ActionBarActivity implements GoogleApiClie
         }
     }
 
-
     /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

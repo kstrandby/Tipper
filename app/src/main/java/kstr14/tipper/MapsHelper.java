@@ -14,10 +14,15 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Created by Kristine on 31-05-2015.
+ * Class containing helper methods for dealing with locations
  */
 public class MapsHelper {
 
+    /**
+     * Convert Location object to LatLng object
+     * @param location
+     * @return
+     */
     public static LatLng getLatLngFromLocation(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
@@ -25,6 +30,11 @@ public class MapsHelper {
         return latLng;
     }
 
+    /**
+     * Convert LatLng object to Location object
+     * @param point
+     * @return
+     */
     public static Location getLocationFromLatLng(LatLng point) {
         Location location =  new Location("Location");
         location.setLatitude(point.latitude);
@@ -32,6 +42,12 @@ public class MapsHelper {
         return location;
     }
 
+    /**
+     * Creating String representation of address from LatLng object
+     * @param latLng
+     * @param context
+     * @return
+     */
     public static String getAddressFromLatLng(LatLng latLng, Context context) {
         Geocoder geocoder;
         List<Address> addresses = new ArrayList<Address>();
@@ -50,10 +66,20 @@ public class MapsHelper {
         } else return null;
     }
 
+    /**
+     * Convert LatLng object to ParseGeoPoint object
+     * @param latLng
+     * @return
+     */
     public static ParseGeoPoint getParseGeoPointFromLatLng(LatLng latLng) {
         return new ParseGeoPoint(latLng.latitude, latLng.longitude);
     }
 
+    /**
+     * Convert ParseGeoPoint object to LatLng object
+     * @param parseGeoPoint
+     * @return
+     */
     public static LatLng getLatLngFromParseGeoPoint(ParseGeoPoint parseGeoPoint) {
         return new LatLng(parseGeoPoint.getLatitude(), parseGeoPoint.getLongitude());
     }

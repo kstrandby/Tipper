@@ -8,9 +8,10 @@ import com.parse.ParseRelation;
 import java.util.UUID;
 
 /**
- * Created by Kristine on 17-05-2015.
+ * Class for a TipperUser object
+ * Only contains getters and setters for fetching and updating attributes of the object in the
+ * database
  */
-
 @ParseClassName("TipperUser")
 public class TipperUser extends ParseObject {
 

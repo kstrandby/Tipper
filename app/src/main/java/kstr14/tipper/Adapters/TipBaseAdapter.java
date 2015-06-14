@@ -21,7 +21,9 @@ import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
 /**
- * Created by Kristine on 16-05-2015.
+ * Adapter used for showing lists of tips.
+ * Each item in list shows the title of the tip, the location of the tip, the price of the tip
+ * and the Image of the tip
  */
 public class TipBaseAdapter extends BaseAdapter {
 
@@ -85,6 +87,7 @@ public class TipBaseAdapter extends BaseAdapter {
             viewHolder.imageView.setParseFile(parseImg);
             viewHolder. imageView.loadInBackground();
         } else {
+            // if no image provided, show placeholder corresponding to category
             Bitmap img = null;
             String category = tips.get(position).getCategory();
             if (category.equals("Food")) {

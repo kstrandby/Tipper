@@ -40,9 +40,18 @@ import kstr14.tipper.Data.TipperUser;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, OnItemLongClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * MainActivity shows the main screen of the app, containing a list of public tips,
+ * 3 buttons taking the user to lists of particular categories of tips (namely food, drinks or other)
+ */
+public class MainActivity extends ActionBarActivity
+        implements OnItemClickListener, OnItemLongClickListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "MainActivity";
+
     public static final int CREATE_TIP_REQUEST = 1;
 
     // UI elements
@@ -118,8 +127,6 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         otherButton.setImageBitmap(otherBitmap);
     }
 
-
-
     /**
      * Handles back button clicks - if user clicks back button twice, the app exits
      */
@@ -147,12 +154,17 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         updateTipList();
     }
 
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
 
     /**
      * Handles menu item clicks
@@ -213,7 +225,6 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
                     return false;
                 }
             }
-
             ((Application)getApplicationContext()).setCurrentUser(null);
             Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
             startActivity(intent);
@@ -224,7 +235,6 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -239,11 +249,10 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
             @Override
             public void done(List<Tip> list, ParseException e) {
                 progressDialog.dismiss();
-                if(list != null && !list.isEmpty()) {
+                if (list != null && !list.isEmpty()) {
                     tips = list;
                     adapter = new TipBaseAdapter(getApplicationContext(), tips);
                     listView.setAdapter((ListAdapter) adapter);
-
                 } else if (e == null) {
                     // means there is just no tips in database
                     TextView msg = (TextView) findViewById(R.id.main_tv_empty);
@@ -252,20 +261,22 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
                     Log.d(ACTIVITY_ID, "Did not find any public tips");
                 } else if (e != null) {
                     // means connection error
-                    if(e.getCode() == ParseException.CONNECTION_FAILED
+                    if (e.getCode() == ParseException.CONNECTION_FAILED
                             || e.getCode() == ParseException.TIMEOUT) {
                         TextView msg = (TextView) findViewById(R.id.main_tv_empty);
-                        msg.setText("Connection error.\nPlease make sure phone is connected to the internet.");
+                        msg.setText("Connection error.\n" +
+                                "Please make sure phone is connected to the internet.");
                         listView.setEmptyView(msg);
                     } else {
                         TextView msg = (TextView) findViewById(R.id.main_tv_empty);
-                        msg.setText("Unknown error. \nPlease try again later or contact the owner of the app if the problem persists.");
+                        msg.setText("Unknown error. \n" +
+                                "Please try again later or contact the owner of the app " +
+                                "if the problem persists.");
                         listView.setEmptyView(msg);
                     }
                 }
             }
         });
-
     }
 
     /**
@@ -284,6 +295,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         }
     }
 
+    /**
+     * Called when the Food category button is clicked
+     * Takes the user to the TipList screen
+     * @param view
+     */
     public void foodCategoryClicked(View view) {
         Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
@@ -292,6 +308,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         startActivity(intent);
     }
 
+    /**
+     * Called when the Drinks category button is clicked
+     * Takes the user to the TipList screen
+     * @param view
+     */
     public void drinksCategoryClicked(View view) {
         Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
@@ -300,6 +321,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         startActivity(intent);
     }
 
+    /**
+     * Called when the Other category button is clicked
+     * Takes the user to the TipList screen
+     * @param view
+     */
     public void otherCategoryClicked(View view) {
         Intent intent = new Intent(getApplicationContext(), ListActivity.class);
         intent.putExtra("source", ACTIVITY_ID);
@@ -308,6 +334,14 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         startActivity(intent);
     }
 
+    /**
+     * Handles clicks on items in ListView
+     * Takes the user to the ShowTipActivity to show the details of the tip clicked
+     * @param parent
+     * @param view
+     * @param position
+     * @param id
+     */
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // grab the selected tip and start intent for show tip activity
@@ -323,6 +357,15 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         startActivity(intent);
     }
 
+    /**
+     * Handles long clicks on items in the ListView
+     * Long click deletes the tip clicked after checking if the user is allowed to delete the tip
+     * and prompting for confirmation via an AlertDialog
+     * @param parent
+     * @param view
+     * @param position
+     * @param id
+     */
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
@@ -357,7 +400,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     }
 
     /**
-     * Sets
+     * Sets the global user variable
      * @param currentUser
      */
     public void setUser(TipperUser currentUser) {
@@ -369,6 +412,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
         }
     }
 
+    /**
+     * Recycles the bitmaps onStop() to be memory efficient
+     */
     @Override
     public void onStop() {
         super.onStop();
@@ -388,17 +434,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
 
     /*** methods below required only for use of GoogleApiClient, which is necessary for logout ***/
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

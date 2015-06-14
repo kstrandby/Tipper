@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by Kristine on 17-05-2015.
+ * Class containing helper methods for dealing with images
  */
 public class ImageHelper {
 
@@ -48,6 +48,14 @@ public class ImageHelper {
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
+    /**
+     * Decodes image specified by Uri
+     * @param context
+     * @param uri
+     * @param size
+     * @return
+     * @throws IOException
+     */
     public static Bitmap decodeBitmapFromUri(Context context, Uri uri, int size) throws IOException {
         InputStream input = context.getContentResolver().openInputStream(uri);
 
@@ -78,6 +86,14 @@ public class ImageHelper {
         else return k;
     }
 
+    /**
+     * Decoding of images from resources
+     * @param res
+     * @param id
+     * @param width
+     * @param height
+     * @return
+     */
     public static Bitmap decodeBitmapFromResource(Resources res, int id, int width, int height) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true; // avoid memory allocation while decoding image
@@ -91,7 +107,13 @@ public class ImageHelper {
         return BitmapFactory.decodeResource(res, id, options);
     }
 
-
+    /**
+     * Calculates the size of the image
+     * @param options
+     * @param width
+     * @param height
+     * @return
+     */
     public static int calculateSize(BitmapFactory.Options options, int width, int height) {
         // Raw height and width of image
         int raw_height = options.outHeight;
@@ -99,19 +121,11 @@ public class ImageHelper {
         int size = 1;
 
         if (raw_height > height || raw_width > width) {
-
             // Calculate ratios of height and width to requested height and width
             final int heightRatio = Math.round((float) raw_height / (float) raw_height);
             final int widthRatio = Math.round((float) raw_width / (float) raw_width);
-
-            // Choose the smallest ratio as inSampleSize value, this will guarantee
-            // a final image with both dimensions larger than or equal to the
-            // requested height and width.
             size = heightRatio < widthRatio ? heightRatio : widthRatio;
         }
-
         return size;
     }
-
-
 }

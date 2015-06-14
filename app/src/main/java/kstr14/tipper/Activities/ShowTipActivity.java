@@ -51,11 +51,19 @@ import kstr14.tipper.ImageHelper;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
-public class ShowTipActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+/**
+ * Activity showing details of a Tip, namely the title, description, optional Image, price,
+ * location, start- and end date
+ * In addition contains buttons to upvote/downvotes as well as adding tip to favourites
+ */
+public class ShowTipActivity extends ActionBarActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    // ACTIVITY_ID is used for logging and keeping track of navigation between activities
     public static final String ACTIVITY_ID = "ShowTipActivity";
 
-    private Tip tip;
+    // UI elements
     private ParseImageView imageView;
     private ImageButton upvoteButton;
     private ImageButton downvoteButton;
@@ -68,7 +76,6 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
     private TextView priceView;
     private ProgressDialog progressDialog;
     private String sourceActivity;
-
     private Bitmap upvoteBitmap;
     private Bitmap downvoteBitmap;
     private Bitmap favouritesBitmap;
@@ -76,10 +83,11 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
 
     private GoogleApiClient googleApiClient;
 
+    private Tip tip;
+
+    // for sharing
     private ShareActionProvider shareActionProvider;
-    CallbackManager callbackManager;
-    private LoginManager manager;
-    ShareDialog shareDialog;
+    private CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,10 +128,10 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         // show progressdialog while downloading Tip data
         progressDialog = ProgressDialog.show(this, "Loading", "Please wait while Tip is being loaded...");
 
+        // fetch the Tip object from database
         String ID = getIntent().getExtras().getString("ID");
         ParseQuery<Tip> query = ParseQuery.getQuery("Tip");
         query.whereEqualTo("uuid", ID);
-
         query.getFirstInBackground(new GetCallback<Tip>() {
             @Override
             public void done(Tip object, ParseException e) {
@@ -163,47 +171,29 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                     }
                 } else {
                     // this case means connection error - show an alertdialog and go back to previous activity when OK clicked
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                    e.printStackTrace();
                     ErrorHandler.showConnectionErrorAlert(ShowTipActivity.this, getParentActivity());
-                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
-
-
                 }
             }
         });
 
+        // initialize Facebook (to be able to share)
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
-
-
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if(upvoteBitmap != null) {
-            upvoteBitmap.recycle();
-            upvoteBitmap = null;
-        }
-        if(downvoteBitmap != null) {
-            downvoteBitmap.recycle();
-            downvoteBitmap = null;
-        }
-        if(favouritesBitmap != null) {
-            favouritesBitmap.recycle();
-            favouritesBitmap = null;
-        }
-        if(imageBitmap != null) {
-            imageBitmap.recycle();
-            imageBitmap = null;
-        }
-    }
-
+    /**
+     * Called after Facebook sharing
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
-
 
     /**
      * Creates a nice String representation of the time period of the Tip
@@ -245,7 +235,6 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                     + String.format("%02d", end.get(Calendar.HOUR_OF_DAY)) + ":"
                     + String.format("%02d", end.get(Calendar.MINUTE));
         }
-
         return output;
     }
 
@@ -303,7 +292,6 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         } else {
             Toast.makeText(getApplicationContext(), "Cannot navigate to unknown location.", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     /**
@@ -396,11 +384,8 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
         } else {
             shareIntent.putExtra(Intent.EXTRA_TEXT, "Tip for you: \n" + title + "\n" + description);
         }
-
         return shareIntent;
     }
-
-
 
     /**
      * Handles setting up the content of the Facebook ShareDialog and
@@ -441,12 +426,9 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
                         exception.printStackTrace();
                     }
                 });
-
-
                 if (ShareDialog.canShow(ShareLinkContent.class)) {
                     shareDialog.show(shareContent);
                 }
-
             } else {
                 // if app does not have sharing permission, request it
                 List<String> permissions = Arrays.asList("publish_actions");
@@ -465,7 +447,6 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
         if (id == R.id.groups) {
             Intent intent = new Intent(this, MyGroupsActivity.class);
             intent.putExtra("source", ACTIVITY_ID);
@@ -516,27 +497,43 @@ public class ShowTipActivity extends ActionBarActivity implements GoogleApiClien
             startActivity(intent);
             return true;
         } else if (id == R.id.share) {
-
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Recycle bitmaps onStop()
+     */
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(upvoteBitmap != null) {
+            upvoteBitmap.recycle();
+            upvoteBitmap = null;
+        }
+        if(downvoteBitmap != null) {
+            downvoteBitmap.recycle();
+            downvoteBitmap = null;
+        }
+        if(favouritesBitmap != null) {
+            favouritesBitmap.recycle();
+            favouritesBitmap = null;
+        }
+        if(imageBitmap != null) {
+            imageBitmap.recycle();
+            imageBitmap = null;
+        }
     }
 
     /**
      * methods below required only for use of GoogleApiClient, which is necessary for logout **
      */
     @Override
-    public void onConnected(Bundle bundle) {
-
-    }
+    public void onConnected(Bundle bundle) { }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) { }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(ConnectionResult connectionResult) { }
 }

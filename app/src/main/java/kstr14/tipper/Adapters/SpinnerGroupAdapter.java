@@ -12,7 +12,8 @@ import kstr14.tipper.Data.Group;
 import kstr14.tipper.R;
 
 /**
- * Created by Kristine on 21-05-2015.
+ * Adapter for Spinner of groups
+ * Each item in spinner list contains a group, and shows the name of the group
  */
 public class SpinnerGroupAdapter extends ArrayAdapter<Group> {
 
@@ -49,7 +50,6 @@ public class SpinnerGroupAdapter extends ArrayAdapter<Group> {
 
         return label;
     }
-
 
     @Override
     public View getDropDownView(int position, View view, ViewGroup parent) {

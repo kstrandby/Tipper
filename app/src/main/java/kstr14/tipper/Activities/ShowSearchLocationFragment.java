@@ -10,7 +10,7 @@ import android.widget.EditText;
 import kstr14.tipper.R;
 
 /**
- * A simple {@link Fragment} subclass.
+ * Fragment showing EditText to allow user to search for location
  */
 public class ShowSearchLocationFragment extends Fragment {
 
@@ -28,5 +28,4 @@ public class ShowSearchLocationFragment extends Fragment {
     public EditText getAddressInput() {
         return addressInput;
     }
-
 }

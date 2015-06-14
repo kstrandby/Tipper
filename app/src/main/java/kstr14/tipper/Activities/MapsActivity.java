@@ -34,7 +34,19 @@ import java.util.Locale;
 import kstr14.tipper.MapsHelper;
 import kstr14.tipper.R;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, OnInfoWindowClickListener {
+/**
+ * Activity showing maps fragment allowing a user to specify a location either by navigating
+ * in the map or by searching for a location by name
+ * The activity contains two other fragments used for searching and specifying current chosen
+ * location:
+ * - ShowLocationFragment: Showing the name of the currently chosen location in a box on top of map
+ * - ShowSearchLocationFragment: Showing an EditText field allowing user to search for a location
+ * on top of the map
+ */
+public class MapsActivity extends FragmentActivity
+        implements OnMapReadyCallback,
+        GoogleMap.OnMarkerClickListener,
+        OnInfoWindowClickListener {
 
     private final static int MAX_SEARCH_RESULTS = 5;
 
@@ -73,7 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = MapsHelper.getLatLngFromLocation(location);
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
 
-        // move camera to my location and update TextView to address of my location
+        // move camera to my current location and update TextView to address of my current location
         map.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
             @Override
             public boolean onMyLocationButtonClick() {
@@ -96,6 +108,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    /**
+     * Fetches the specified location and returns to the calling activity
+     * @param view
+     */
     public void submitLocation(View view) {
         LatLng latLng = MapsHelper.getLatLngFromLocation(location);
         Intent intent = new Intent();
@@ -104,31 +120,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         finish();
     }
 
+    /**
+     * Creates the ActionBar menu
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_maps, menu);
         return true;
     }
 
+    /**
+     * Handles ActionBar items clicks
+     * As the ActionBar is hidden on the maps screen, this is not used
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Called when search button on ShowLocationFragment is clicked
+     * Switches the ShowLocationFragment with the ShowSearchLocationFragment
+     * @param view
+     */
     public void searchClicked(View view) {
         showSearchLocationFragment = new ShowSearchLocationFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        // Replace the default login fragment with the sign up fragment,
+        // Replace the ShowLocationFragment with the ShowSearchLocationFragment,
         // and add the transaction to the back stack so the user can navigate back
         fragmentTransaction.replace(R.id.location_fragment, showSearchLocationFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-
     }
 
+    /**
+     * Called when the search button on ShowSearchLocationFragment is clicked
+     * Fetches the query and performs a location search using Google Maps
+     * Places a marker on the first 5 search results and zoomes the view to show all markers
+     *
+     * @param view
+     * @throws IOException
+     */
     public void searchAddress(View view) throws IOException {
         map.clear();
         String query = showSearchLocationFragment.getAddressInput().getText().toString();
@@ -148,48 +187,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 builder.include(latLng);
             }
 
-
             LatLngBounds bounds = builder.build();
             int padding = 20; // offset from edges of the map in pixels
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
             map.animateCamera(cameraUpdate);
-
         } else {
             Toast.makeText(getApplicationContext(), "No results for search.", Toast.LENGTH_SHORT).show();
         }
+
+        // hide keyboard
         InputMethodManager inputManager = (InputMethodManager)
                 getSystemService(Context.INPUT_METHOD_SERVICE);
 
         inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                 InputMethodManager.HIDE_NOT_ALWAYS);
-
     }
 
+    /**
+     * Handles clicks on markers
+     * @param marker
+     * @return
+     */
     @Override
     public boolean onMarkerClick(Marker marker) {
         markerClicked(marker);
         return true;
     }
 
-    public void updateAddress() {
-        String address = MapsHelper.getAddressFromLatLng(MapsHelper.getLatLngFromLocation(location), getApplicationContext());
-        if(address != null) {
-            showLocationFragment.getLocationView().setText(address);
-        }
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-
-    }
-
+    /**
+     * Handles clicks on InfoWindows on markers
+     * Behaves identically to onMarkerClicks
+     * @param marker
+     */
     @Override
     public void onInfoWindowClick(Marker marker) {
         markerClicked(marker);
     }
 
     /**
-     * hide the search fragment and show the address of the marker in the textview
+     * Update the address shown in the TextView in ShowLocationFragment
+     */
+    public void updateAddress() {
+        String address = MapsHelper
+                .getAddressFromLatLng(MapsHelper.getLatLngFromLocation(location), getApplicationContext());
+        if(address != null) {
+            showLocationFragment.getLocationView().setText(address);
+        }
+    }
+
+    /**
+     * Switches the ShowSearchLocationFragment for the ShowLocationFragment and updates the TextView
+     * on the ShowLocationFragment with the address of the marker clicked
      * @param marker
      */
     public void markerClicked(Marker marker) {
@@ -202,4 +250,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         location = MapsHelper.getLocationFromLatLng(marker.getPosition());
         updateAddress();
     }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) { }
 }

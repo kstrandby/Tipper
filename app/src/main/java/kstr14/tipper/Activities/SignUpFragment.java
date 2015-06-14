@@ -11,6 +11,9 @@ import android.widget.ImageView;
 import kstr14.tipper.ImageHelper;
 import kstr14.tipper.R;
 
+/**
+ * Fragment for signing up for Tipper
+ */
 public class SignUpFragment extends Fragment {
 
     private ImageView tipper;
