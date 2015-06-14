@@ -1,6 +1,7 @@
 package kstr14.tipper.Data;
 
 import com.parse.ParseClassName;
+import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseRelation;
@@ -49,8 +50,8 @@ public class Group extends ParseObject {
         put("creator", creator);
     }
 
-    public ParseObject getCreator() {
-        return getParseObject("creator");
+    public ParseObject getCreator() throws ParseException {
+        return fetchIfNeeded().getParseObject("creator");
     }
 
     public ParseRelation<TipperUser> getUsers() {

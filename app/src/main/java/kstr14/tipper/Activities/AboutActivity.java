@@ -51,7 +51,7 @@ public class AboutActivity extends ActionBarActivity implements GoogleApiClient.
         String about = "<b>Google Play Services:</b><br>"
                 + "Google+ login, sharing, maps<br><br>"
                 + "<b>Facebook SDK:</b><br>"
-                + "Facebook login and sharing"
+                + "Facebook login and sharing<br><br>"
                 + "<b>Parse:</b><br>"
                 + "Connection to Parse database using Parse API<br><br>"
                 + "<b>javax.mail:</b><br>"

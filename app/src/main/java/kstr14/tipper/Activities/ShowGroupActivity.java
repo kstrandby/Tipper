@@ -167,38 +167,43 @@ public class ShowGroupActivity extends ActionBarActivity
                         public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                             // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
                             final Tip tip = (Tip) listView.getAdapter().getItem(position);
+                            try {
+                                if (tip.getCreator().equals(currentUser) || group.getCreator().equals(currentUser)) {
+                                    // create dialog for deletion of item
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupActivity.this);
+                                    builder.setTitle("Remove tip?");
+                                    builder.setMessage("Are you sure you wish to delete this tip?");
+                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // remove tip from database
 
-                            if (tip.getCreator().equals(currentUser) || group.getCreator().equals(currentUser)) {
-                                // create dialog for deletion of item
-                                AlertDialog.Builder builder = new AlertDialog.Builder(ShowGroupActivity.this);
-                                builder.setTitle("Remove tip?");
-                                builder.setMessage("Are you sure you wish to delete this tip?");
-                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // remove tip from database
-
-                                        tip.deleteInBackground();
-                                        updateTipList();
-                                        Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.cancel();
-                                    }
-                                });
-                                builder.create().show();
-                                return true;
-                            } else {
-                                Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
-                                return true;
+                                            tip.deleteInBackground();
+                                            updateTipList();
+                                            Toast.makeText(getBaseContext(), "Tip has been deleted.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                                    builder.create().show();
+                                    return true;
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "You do not have the rights to delete this tip.", Toast.LENGTH_SHORT).show();
+                                    return true;
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
+                            return true;
                         }
                     });
                 } else {
-                    Log.e(ACTIVITY_ID, "Parse error: " + e.getStackTrace().toString());
+                    Log.e(ACTIVITY_ID, "Parse error: " + e.getMessage());
+                    e.printStackTrace();
                     ErrorHandler.showConnectionErrorAlert(ShowGroupActivity.this, getParentActivity());
                 }
             }

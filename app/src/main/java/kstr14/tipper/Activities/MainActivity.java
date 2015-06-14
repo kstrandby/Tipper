@@ -370,7 +370,12 @@ public class MainActivity extends ActionBarActivity
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         // check if user has the rights to delete the tip (if user is creator of tip or owner of group)
         final Tip tip = (Tip) listView.getAdapter().getItem(position);
-        TipperUser groupCreator = (TipperUser) ((Group)tip.getGroup()).getCreator();
+        TipperUser groupCreator = null;
+        try {
+            groupCreator = (TipperUser) ((Group)tip.getGroup()).getCreator();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         if (tip.getCreator().equals(user) || groupCreator.equals(user)) {
             // create dialog for deletion of item
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
