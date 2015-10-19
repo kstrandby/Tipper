@@ -1,3 +1,5 @@
+This project was developed as part of the unit FIT4039 Android and iOS Development of Monash University, Melbourne, Australia.
+
 Tipper is an Android application which purpose is to be used for tipping about free and cheap food, drinks, and everything else that comes to mind. 
 The application is based on users creating tips about whatever good deals they discover, sorted into different categories (e.g. food, drinks, travel, etc.), locations and groups.
 
